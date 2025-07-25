@@ -217,7 +217,7 @@ export default function CareerPilotClient() {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <h1 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-headline bg-gradient-to-r from-primary via-cyan-300 to-blue-400 text-transparent bg-clip-text">
+      <h1 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-headline text-primary">
         CareerPilot AI
       </h1>
       <p className="text-center text-lg text-muted-foreground mb-10">
