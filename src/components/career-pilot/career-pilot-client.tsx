@@ -70,8 +70,7 @@ export default function CareerPilotClient() {
         }
         
         const pdfjs = await import('pdfjs-dist');
-        const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+        pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
         const doc = await pdfjs.getDocument({data: fileBuffer}).promise;
         let fullText = '';
