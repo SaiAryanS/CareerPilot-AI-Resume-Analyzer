@@ -21,9 +21,16 @@ const interviewQuestions = [
   "Why are you interested in this specific role and our company?",
 ];
 
+const jobDescriptions = {
+  HR: `Human Resources Manager Job Description: We are looking for an experienced and dedicated Human Resources (HR) Manager to join our team. The HR Manager will be responsible for overseeing all aspects of the HR department, including recruitment, employee relations, performance management, and compliance with employment laws. The ideal candidate will have a strong background in HR principles and practices, excellent communication skills, and the ability to work effectively with employees at all levels of the organization.`,
+  ML: `Machine Learning Engineer Job Description: We are seeking a talented Machine Learning (ML) Engineer to join our innovative team. The ML Engineer will be responsible for designing, developing, and deploying machine learning models to solve complex business problems. The ideal candidate will have a solid foundation in computer science, mathematics, and statistics, along with hands-on experience in building and optimizing ML models.`,
+  AI: `AI Engineer Job Description: We are looking for a skilled and creative AI Engineer to join our forward-thinking team. The AI Engineer will be responsible for developing and implementing artificial intelligence solutions that drive business innovation. The ideal candidate will have a strong background in AI/ML, deep learning, natural language processing (NLP), and computer vision, as well as experience in building and deploying AI-powered applications.`,
+  CSE: `Computer Science Engineer Job Description: We are hiring a motivated and skilled Computer Science Engineer to join our dynamic engineering team. The Computer Science Engineer will be responsible for designing, developing, and maintaining software applications and systems. The ideal candidate will have a strong understanding of computer science fundamentals, data structures, algorithms, and software development best practices.`
+};
+
 export default function CareerPilotClient() {
   const [stage, setStage] = useState<Stage>('analysis');
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobDescriptionKey, setJobDescriptionKey] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeSkillsOutput | null>(null);
@@ -42,11 +49,11 @@ export default function CareerPilotClient() {
   };
 
   const handleAnalyze = async () => {
-    if (!jobDescription || !resumeFile) {
+    if (!jobDescriptionKey || !resumeFile) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please provide both a job description and a resume file.",
+        description: "Please select a job description and upload a resume file.",
       });
       return;
     }
@@ -59,6 +66,7 @@ export default function CareerPilotClient() {
         if (!resumeText) {
           throw new Error("Could not read resume file.");
         }
+        const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
         const result = await analyzeSkills({ jobDescription, resume: resumeText });
         setAnalysisResult(result);
         setStage('result');
@@ -118,7 +126,7 @@ export default function CareerPilotClient() {
   const resetAnalysis = () => {
     setStage('analysis');
     setAnalysisResult(null);
-    setJobDescription('');
+    setJobDescriptionKey('');
     setResumeFile(null);
   }
 
@@ -161,8 +169,8 @@ export default function CareerPilotClient() {
     switch (stage) {
       case 'analysis':
         return <AnalysisView
-          jobDescription={jobDescription}
-          onJobDescriptionChange={setJobDescription}
+          jobDescription={jobDescriptionKey}
+          onJobDescriptionChange={setJobDescriptionKey}
           resumeFile={resumeFile}
           onResumeFileChange={handleFileChange}
           onAnalyze={handleAnalyze}

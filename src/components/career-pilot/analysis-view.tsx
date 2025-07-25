@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AnalysisViewProps {
   jobDescription: string;
@@ -14,24 +14,38 @@ interface AnalysisViewProps {
   isLoading: boolean;
 }
 
+const jobDescriptions = {
+    HR: `Human Resources Manager Job Description: We are looking for an experienced and dedicated Human Resources (HR) Manager to join our team. The HR Manager will be responsible for overseeing all aspects of the HR department, including recruitment, employee relations, performance management, and compliance with employment laws. The ideal candidate will have a strong background in HR principles and practices, excellent communication skills, and the ability to work effectively with employees at all levels of the organization.`,
+    ML: `Machine Learning Engineer Job Description: We are seeking a talented Machine Learning (ML) Engineer to join our innovative team. The ML Engineer will be responsible for designing, developing, and deploying machine learning models to solve complex business problems. The ideal candidate will have a solid foundation in computer science, mathematics, and statistics, along with hands-on experience in building and optimizing ML models.`,
+    AI: `AI Engineer Job Description: We are looking for a skilled and creative AI Engineer to join our forward-thinking team. The AI Engineer will be responsible for developing and implementing artificial intelligence solutions that drive business innovation. The ideal candidate will have a strong background in AI/ML, deep learning, natural language processing (NLP), and computer vision, as well as experience in building and deploying AI-powered applications.`,
+    CSE: `Computer Science Engineer Job Description: We are hiring a motivated and skilled Computer Science Engineer to join our dynamic engineering team. The Computer Science Engineer will be responsible for designing, developing, and maintaining software applications and systems. The ideal candidate will have a strong understanding of computer science fundamentals, data structures, algorithms, and software development best practices.`
+  };
+
 export function AnalysisView({ jobDescription, onJobDescriptionChange, resumeFile, onResumeFileChange, onAnalyze, isLoading }: AnalysisViewProps) {
   return (
     <Card className="w-full max-w-2xl mx-auto border-primary/20 shadow-primary/5 shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Resume Analysis</CardTitle>
-        <CardDescription>Paste the job description and upload your resume to get a skill match analysis.</CardDescription>
+        <CardDescription>Select a job description and upload your resume to get a skill match analysis.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="job-description" className="font-medium">Job Description</Label>
-          <Textarea
-            id="job-description"
-            placeholder="Paste the full job description here..."
-            value={jobDescription}
-            onChange={(e) => onJobDescriptionChange(e.target.value)}
-            className="min-h-[200px] bg-background/50 border-border focus:border-primary focus:ring-primary"
-            rows={10}
-          />
+          <Select onValueChange={onJobDescriptionChange} value={jobDescription}>
+            <SelectTrigger id="job-description" className="w-full bg-background/50 border-border focus:border-primary focus:ring-primary">
+              <SelectValue placeholder="Select a job description" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(jobDescriptions).map(([key]) => (
+                <SelectItem key={key} value={key}>{key}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {jobDescription && (
+            <div className="p-4 mt-2 text-sm text-muted-foreground bg-muted/30 rounded-md border border-border/50 max-h-40 overflow-y-auto">
+                {jobDescriptions[jobDescription as keyof typeof jobDescriptions]}
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="resume-upload" className="font-medium">Your Resume</Label>
