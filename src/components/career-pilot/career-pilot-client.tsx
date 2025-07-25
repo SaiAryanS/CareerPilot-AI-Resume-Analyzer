@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import { mockVoiceTranscription } from '@/ai/flows/mock-voice-transcription';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
+import pdfParse from "pdf-parse";
 
 type Stage = 'analysis' | 'result' | 'interview';
 
@@ -27,6 +29,13 @@ const jobDescriptions = {
   AI: `AI Engineer Job Description: We are looking for a skilled and creative AI Engineer to join our forward-thinking team. The AI Engineer will be responsible for developing and implementing artificial intelligence solutions that drive business innovation. The ideal candidate will have a strong background in AI/ML, deep learning, natural language processing (NLP), and computer vision, as well as experience in building and deploying AI-powered applications.`,
   CSE: `Computer Science Engineer Job Description: We are hiring a motivated and skilled Computer Science Engineer to join our dynamic engineering team. The Computer Science Engineer will be responsible for designing, developing, and maintaining software applications and systems. The ideal candidate will have a strong understanding of computer science fundamentals, data structures, algorithms, and software development best practices.`
 };
+
+// Add pdfjs worker
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  pdfParse.PDFJS.workerSrc = `//unpkg.com/pdfjs-dist@${pdfParse.PDFJS.version}/build/pdf.worker.min.js`;
+}
+
 
 export default function CareerPilotClient() {
   const [stage, setStage] = useState<Stage>('analysis');
@@ -62,10 +71,13 @@ export default function CareerPilotClient() {
 
     reader.onload = async (e) => {
       try {
-        const resumeText = e.target?.result as string;
-        if (!resumeText) {
+        const fileBuffer = e.target?.result as ArrayBuffer;
+        if (!fileBuffer) {
           throw new Error("Could not read resume file.");
         }
+        const pdfData = await pdfParse(Buffer.from(fileBuffer));
+        const resumeText = pdfData.text;
+        
         const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
         const result = await analyzeSkills({ jobDescription, resume: resumeText });
         setAnalysisResult(result);
@@ -91,7 +103,7 @@ export default function CareerPilotClient() {
       });
     }
 
-    reader.readAsText(resumeFile);
+    reader.readAsArrayBuffer(resumeFile);
   };
 
   const handleStartInterview = () => {

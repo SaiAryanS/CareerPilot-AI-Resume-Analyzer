@@ -53,13 +53,13 @@ export function AnalysisView({ jobDescription, onJobDescriptionChange, resumeFil
             <Label htmlFor="resume-upload" className="flex-1">
               <div className="flex items-center justify-center w-full h-12 px-4 py-2 text-sm rounded-md border border-dashed border-primary/50 cursor-pointer hover:bg-accent/10 hover:border-primary/80 transition-colors">
                 <Upload className="mr-2 h-4 w-4" />
-                <span>{resumeFile ? 'Change Resume' : 'Upload Resume (.txt)'}</span>
+                <span>{resumeFile ? 'Change Resume' : 'Upload Resume (.pdf)'}</span>
               </div>
             </Label>
-            <Input id="resume-upload" type="file" className="hidden" onChange={onResumeFileChange} accept=".txt" />
+            <Input id="resume-upload" type="file" className="hidden" onChange={onResumeFileChange} accept=".pdf" />
             {resumeFile && <p className="text-sm text-muted-foreground truncate max-w-xs">{resumeFile.name}</p>}
           </div>
-          <p className="text-xs text-muted-foreground">Please use a plain text (.txt) file for analysis.</p>
+          <p className="text-xs text-muted-foreground">Please use a PDF file for analysis.</p>
         </div>
       </CardContent>
       <CardFooter>
