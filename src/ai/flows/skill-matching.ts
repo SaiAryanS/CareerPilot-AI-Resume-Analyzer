@@ -25,7 +25,7 @@ const AnalyzeSkillsOutputSchema = z.object({
   matchScore: z.number().describe('The percentage match score between the resume and the job description.'),
   matchingSkills: z.array(z.string()).describe('A list of skills that match between the resume and the job description.'),
   missingSkills: z.array(z.string()).describe('A list of skills that are in the job description but missing from the resume.'),
-  status: z.string().describe('Approval status based on the match score.'),
+  status: z.string().describe('Approval status based on the match score. Can be "Approved", "Needs Improvement", or "Not a Match".'),
 });
 export type AnalyzeSkillsOutput = z.infer<typeof AnalyzeSkillsOutputSchema>;
 
@@ -43,7 +43,10 @@ Job Description: {{{jobDescription}}}
 
 Resume: {{{resume}}}
 
-Based on the match score, provide an approval status. If the match score is above 75%, the status is "Approved". Otherwise, it is "Needs Improvement".
+Based on the match score, provide an approval status.
+- If the match score is 75% or above, the status is "Approved".
+- If the match score is between 50% and 74%, the status is "Needs Improvement".
+- If the match score is below 50%, the status is "Not a Match".
 
 Ensure that the matchScore is a number between 0 and 100.
 `,
@@ -60,4 +63,3 @@ const analyzeSkillsFlow = ai.defineFlow(
     return output!;
   }
 );
-
