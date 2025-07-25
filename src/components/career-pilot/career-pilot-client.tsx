@@ -11,6 +11,7 @@ import { mockVoiceTranscription } from '@/ai/flows/mock-voice-transcription';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 type Stage = 'analysis' | 'result' | 'interview';
 
@@ -26,7 +27,7 @@ const jobDescriptions = {
   HR: `Human Resources Manager Job Description: We are looking for an experienced and dedicated Human Resources (HR) Manager to join our team. The HR Manager will be responsible for overseeing all aspects of the HR department, including recruitment, employee relations, performance management, and compliance with employment laws. The ideal candidate will have a strong background in HR principles and practices, excellent communication skills, and the ability to work effectively with employees at all levels of the organization.`,
   ML: `Machine Learning Engineer Job Description: We are seeking a talented Machine Learning (ML) Engineer to join our innovative team. The ML Engineer will be responsible for designing, developing, and deploying machine learning models to solve complex business problems. The ideal candidate will have a solid foundation in computer science, mathematics, and statistics, along with hands-on experience in building and optimizing ML models.`,
   AI: `AI Engineer Job Description: We are looking for a skilled and creative AI Engineer to join our forward-thinking team. The AI Engineer will be responsible for developing and implementing artificial intelligence solutions that drive business innovation. The ideal candidate will have a strong background in AI/ML, deep learning, natural language processing (NLP), and computer vision, as well as experience in building and deploying AI-powered applications.`,
-  CSE: `Computer Science Engineer Job Description: We are hiring a motivated and skilled Computer Science Engineer to join our dynamic engineering team. The Computer Science Engineer will be responsible for designing, developing, and maintaining software applications and systems. The ideal candidate will have a strong understanding of computer science fundamentals, data structures, algorithms, and software development best practices.`
+  CSE: `Computer Science Engineer Job Description: We are hiring a motivated and skilled Computer Science Engineer to join our dynamic engineering team. The Computer Science Engineer will be responsible for designing, developing, and maintaining software applications and systems. The ideal candidate will have a strong understanding of computer science fundamentals, data structures, and software development best practices.`
 };
 
 export default function CareerPilotClient() {
@@ -68,27 +69,18 @@ export default function CareerPilotClient() {
           throw new Error("Could not read resume file.");
         }
         
-        const pdf = (await import('pdf-parse')).default;
-        
-        // This is a workaround to avoid server-side dependencies in the browser
-        let resumeText;
-        if (typeof window !== 'undefined') {
-          const pdfjs = await import('pdfjs-dist/build/pdf');
-          pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-          const doc = await pdfjs.getDocument({data: fileBuffer}).promise;
-          const numPages = doc.numPages;
-          let fullText = '';
-          for (let i = 1; i <= numPages; i++) {
-            const page = await doc.getPage(i);
-            const textContent = await page.getTextContent();
-            fullText += textContent.items.map(item => (item as any).str).join(' ');
-          }
-          resumeText = fullText;
-        } else {
-           // Fallback for non-browser environments (though this component is client-side)
-          const data = await pdf(Buffer.from(fileBuffer));
-          resumeText = data.text;
+        const pdfjs = await import('pdfjs-dist/build/pdf');
+        const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
+        const doc = await pdfjs.getDocument({data: fileBuffer}).promise;
+        let fullText = '';
+        for (let i = 1; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i);
+          const textContent = await page.getTextContent();
+          fullText += textContent.items.map(item => (item as any).str).join(' ');
         }
+        const resumeText = fullText;
         
         const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
         const result = await analyzeSkills({ jobDescription, resume: resumeText });
