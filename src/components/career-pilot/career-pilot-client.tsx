@@ -68,18 +68,27 @@ export default function CareerPilotClient() {
           throw new Error("Could not read resume file.");
         }
         
-        // Use dynamic import for pdf-parse
-        const pdf = (await import('pdf-parse/lib/pdf-parse.js')).default;
+        const pdf = (await import('pdf-parse')).default;
         
-        // Set worker source for client-side processing
-        // @ts-ignore
+        // This is a workaround to avoid server-side dependencies in the browser
+        let resumeText;
         if (typeof window !== 'undefined') {
-          // @ts-ignore
-          pdf.PDFJS.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdf.PDFJS.version}/pdf.worker.min.js`;
+          const pdfjs = await import('pdfjs-dist/build/pdf');
+          pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+          const doc = await pdfjs.getDocument({data: fileBuffer}).promise;
+          const numPages = doc.numPages;
+          let fullText = '';
+          for (let i = 1; i <= numPages; i++) {
+            const page = await doc.getPage(i);
+            const textContent = await page.getTextContent();
+            fullText += textContent.items.map(item => (item as any).str).join(' ');
+          }
+          resumeText = fullText;
+        } else {
+           // Fallback for non-browser environments (though this component is client-side)
+          const data = await pdf(Buffer.from(fileBuffer));
+          resumeText = data.text;
         }
-        
-        const pdfData = await pdf(Buffer.from(fileBuffer));
-        const resumeText = pdfData.text;
         
         const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
         const result = await analyzeSkills({ jobDescription, resume: resumeText });
