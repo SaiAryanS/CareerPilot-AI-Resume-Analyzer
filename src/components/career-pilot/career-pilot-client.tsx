@@ -5,23 +5,13 @@ import { useState } from 'react';
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
 import { AnalysisView } from '@/components/career-pilot/analysis-view';
 import { ResultView } from '@/components/career-pilot/result-view';
-import { InterviewView } from '@/components/career-pilot/interview-view';
 import { analyzeSkills } from '@/ai/flows/skill-matching';
-import { mockVoiceTranscription } from '@/ai/flows/mock-voice-transcription';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
-type Stage = 'analysis' | 'result' | 'interview';
-
-const interviewQuestions = [
-  "Can you tell me about yourself and your background?",
-  "What are your biggest weaknesses and how do you work to improve them?",
-  "What are your biggest strengths and how would they benefit our team?",
-  "Where do you see yourself professionally in the next five years?",
-  "Why are you interested in this specific role and our company?",
-];
+type Stage = 'analysis' | 'result';
 
 const jobDescriptions = {
     DataAnalyst: `Data Analyst Job Description: We are seeking a detail-oriented Data Analyst to join our team. The Data Analyst will be responsible for interpreting data, analyzing results using statistical techniques, and providing ongoing reports. The ideal candidate will have strong analytical skills, experience with data models, and the ability to turn data into actionable insights.`,
@@ -39,11 +29,6 @@ export default function CareerPilotClient() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeSkillsOutput | null>(null);
-
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [transcription, setTranscription] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
 
   const { toast } = useToast();
 
@@ -112,64 +97,12 @@ export default function CareerPilotClient() {
     reader.readAsArrayBuffer(resumeFile);
   };
 
-  const handleStartInterview = () => {
-    setStage('interview');
-  };
-
-  const handleRecordAnswer = async () => {
-    if (!userAnswer) {
-      toast({
-        variant: "destructive",
-        title: "No Answer Provided",
-        description: "Please type your answer before recording.",
-      });
-      return;
-    }
-    setIsRecording(true);
-    try {
-      const result = await mockVoiceTranscription({ spokenAnswer: userAnswer });
-      setTranscription(result.transcription);
-    } catch (error) {
-      console.error("Transcription failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Transcription Failed",
-        description: "Could not generate the mock transcription.",
-      });
-    } finally {
-      setIsRecording(false);
-    }
-  };
-
   const resetAnalysis = () => {
     setStage('analysis');
     setAnalysisResult(null);
     setJobDescriptionKey('');
     setResumeFile(null);
   }
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < interviewQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setUserAnswer('');
-      setTranscription('');
-    } else {
-      // Potentially loop back to the beginning or show a summary screen
-      resetAnalysis();
-      toast({
-        title: "Interview Complete!",
-        description: "You've finished all the questions.",
-      });
-    }
-  };
-
-  const handlePrevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setUserAnswer('');
-      setTranscription('');
-    }
-  };
 
   const renderContent = () => {
     if (isLoading && stage === 'analysis') {
@@ -197,21 +130,7 @@ export default function CareerPilotClient() {
       case 'result':
         return analysisResult && <ResultView
           result={analysisResult}
-          onStartInterview={handleStartInterview}
           onTryAgain={resetAnalysis}
-        />;
-      case 'interview':
-        return <InterviewView
-          question={interviewQuestions[currentQuestionIndex]}
-          questionNumber={currentQuestionIndex + 1}
-          totalQuestions={interviewQuestions.length}
-          answer={userAnswer}
-          onAnswerChange={setUserAnswer}
-          onRecord={handleRecordAnswer}
-          isRecording={isRecording}
-          transcription={transcription}
-          onNext={handleNextQuestion}
-          onPrev={handlePrevQuestion}
         />;
       default:
         return null;

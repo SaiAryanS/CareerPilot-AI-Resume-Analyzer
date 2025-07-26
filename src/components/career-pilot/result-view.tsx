@@ -1,16 +1,16 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
-import { CheckCircle2, XCircle, ArrowRight, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 
 interface ResultViewProps {
   result: AnalyzeSkillsOutput;
-  onStartInterview: () => void;
   onTryAgain: () => void;
 }
 
-export function ResultView({ result, onStartInterview, onTryAgain }: ResultViewProps) {
+export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const getStatusStyle = () => {
     if (result.matchScore >= 75) {
       return {
@@ -39,8 +39,7 @@ export function ResultView({ result, onStartInterview, onTryAgain }: ResultViewP
     }
   };
 
-  const { bgColor, textColor, icon, statusText, badgeClass } = getStatusStyle();
-  const isApproved = result.matchScore >= 75;
+  const { bgColor, textColor, icon, statusText } = getStatusStyle();
 
   return (
     <Card className="w-full max-w-2xl mx-auto border-primary/20 shadow-primary/5 shadow-lg">
@@ -82,11 +81,6 @@ export function ResultView({ result, onStartInterview, onTryAgain }: ResultViewP
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row gap-4">
         <Button onClick={onTryAgain} variant="outline" className="w-full sm:w-auto">Analyze Another</Button>
-        {isApproved && (
-          <Button onClick={onStartInterview} className="w-full sm:w-auto flex-grow font-bold">
-            Start Interview <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        )}
       </CardFooter>
     </Card>
   );
