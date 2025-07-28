@@ -140,10 +140,10 @@ export default function CareerPilotClient() {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-headline text-primary">
-        CareerPilot AI
+        Resume Analysis
       </h1>
       <p className="text-center text-lg text-muted-foreground mb-10">
-        Your AI-Powered Career Copilot
+        Your AI-Powered Resume Analyis
       </p>
       {renderContent()}
     </div>

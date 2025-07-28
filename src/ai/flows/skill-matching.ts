@@ -37,18 +37,23 @@ const analyzeSkillsPrompt = ai.definePrompt({
   name: 'analyzeSkillsPrompt',
   input: {schema: AnalyzeSkillsInputSchema},
   output: {schema: AnalyzeSkillsOutputSchema},
-  prompt: `You are an AI career coach. Analyze the following resume against the job description and provide a match score, a list of matching skills, and a list of missing skills.
+  prompt: `You are an expert AI career analyst. Your task is to perform a deep, contextual analysis of a resume against a job description. Do not rely on simple keyword matching. Instead, focus on semantic meaning, experience, and accomplishments.
 
-Job Description: {{{jobDescription}}}
+Follow these steps for your analysis:
+1.  **Identify Core Requirements:** First, thoroughly analyze the Job Description to extract the key skills, technologies, and experience levels required for the role.
+2.  **Resume Skill Extraction:** Next, analyze the Resume to identify the candidate's skills, technologies, and accomplishments. Look for implied skills based on project descriptions and work history (e.g., if a candidate lists "built a REST API with Express.js," they possess "Node.js" and "API Development" skills).
+3.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume. Identify both the "Matching Skills" and the "Missing Skills." A skill is "matching" if it's present, either explicitly or contextually.
+4.  **Calculate Match Score:** Based on the comparison, calculate a \`matchScore\`. This score should reflect not just the presence of skills but also the depth of experience and relevance of accomplishments mentioned in the resume. A resume that demonstrates deep experience in a few key areas from the job description may be a better match than one that lists many skills with little context. The score must be a number between 0 and 100.
+5.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
+    - 75% or higher: "Approved"
+    - 50% to 74%: "Needs Improvement"
+    - Below 50%: "Not a Match"
 
-Resume: {{{resume}}}
+Job Description:
+{{{jobDescription}}}
 
-Based on the match score, provide an approval status.
-- If the match score is 75% or above, the status is "Approved".
-- If the match score is between 50% and 74%, the status is "Needs Improvement".
-- If the match score is below 50%, the status is "Not a Match".
-
-Ensure that the matchScore is a number between 0 and 100.
+Resume:
+{{{resume}}}
 `,
 });
 

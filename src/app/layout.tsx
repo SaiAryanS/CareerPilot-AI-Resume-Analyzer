@@ -4,8 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "CareerPilot AI",
-  description: "AI-Powered Career Copilot",
+  title: "Resume Analysis",
+  description: "AI-Powered Resume Analysis ",
 };
 
 export default function RootLayout({
