@@ -1,8 +1,6 @@
 
 import {NextRequest, NextResponse} from 'next/server';
-import {promises as fs} from 'fs';
 import pdf from 'pdf-parse';
-import {IncomingForm} from 'formidable';
 import {analyzeSkills} from '@/ai/flows/skill-matching';
 
 export const config = {
