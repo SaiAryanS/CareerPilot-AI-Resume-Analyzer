@@ -5,11 +5,9 @@ import { useState } from 'react';
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
 import { AnalysisView } from '@/components/career-pilot/analysis-view';
 import { ResultView } from '@/components/career-pilot/result-view';
-import { analyzeSkills } from '@/ai/flows/skill-matching';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 type Stage = 'analysis' | 'result';
 
@@ -48,53 +46,37 @@ export default function CareerPilotClient() {
       return;
     }
     setIsLoading(true);
-    const reader = new FileReader();
 
-    reader.onload = async (e) => {
-      try {
-        const fileBuffer = e.target?.result as ArrayBuffer;
-        if (!fileBuffer) {
-          throw new Error("Could not read resume file.");
-        }
-        
-        const pdfjs = await import('pdfjs-dist');
-        pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-        const doc = await pdfjs.getDocument({data: fileBuffer}).promise;
-        let fullText = '';
-        for (let i = 1; i <= doc.numPages; i++) {
-          const page = await doc.getPage(i);
-          const textContent = await page.getTextContent();
-          fullText += textContent.items.map(item => (item as any).str).join(' ');
-        }
-        const resumeText = fullText;
-        
+    try {
+        const formData = new FormData();
         const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
-        const result = await analyzeSkills({ jobDescription, resume: resumeText });
+        formData.append('jobDescription', jobDescription);
+        formData.append('resumeFile', resumeFile);
+
+        const response = await fetch('/api/parse-resume', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Analysis failed');
+        }
+
+        const result = await response.json();
         setAnalysisResult(result);
         setStage('result');
-      } catch (error) {
+
+    } catch (error) {
         console.error("Analysis failed:", error);
         toast({
           variant: "destructive",
           title: "Analysis Failed",
           description: "An error occurred during the analysis. Please try again.",
         });
-      } finally {
+    } finally {
         setIsLoading(false);
-      }
-    };
-
-    reader.onerror = () => {
-      setIsLoading(false);
-      toast({
-        variant: "destructive",
-        title: "File Read Error",
-        description: "Failed to read the resume file.",
-      });
     }
-
-    reader.readAsArrayBuffer(resumeFile);
   };
 
   const resetAnalysis = () => {
