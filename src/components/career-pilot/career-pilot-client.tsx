@@ -10,7 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import * as pdfjs from "pdfjs-dist";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+
 
 type Stage = 'analysis' | 'result';
 
