@@ -2,12 +2,15 @@
 "use client";
 
 import { useState } from 'react';
-import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
+import { analyzeSkills, type AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
 import { AnalysisView } from '@/components/career-pilot/analysis-view';
 import { ResultView } from '@/components/career-pilot/result-view';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
+import * as pdfjs from "pdfjs-dist";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 type Stage = 'analysis' | 'result';
 
@@ -36,6 +39,18 @@ export default function CareerPilotClient() {
     }
   };
 
+  const extractTextFromPdf = async (file: File) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument(arrayBuffer).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => 'str' in item ? item.str : '').join(' ');
+    }
+    return text;
+  }
+
   const handleAnalyze = async () => {
     if (!jobDescriptionKey || !resumeFile) {
       toast({
@@ -48,22 +63,14 @@ export default function CareerPilotClient() {
     setIsLoading(true);
 
     try {
-        const formData = new FormData();
+        const resumeText = await extractTextFromPdf(resumeFile);
         const jobDescription = jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions];
-        formData.append('jobDescription', jobDescription);
-        formData.append('resumeFile', resumeFile);
 
-        const response = await fetch('/api/parse-resume', {
-            method: 'POST',
-            body: formData,
+        const result = await analyzeSkills({
+            jobDescription: jobDescription,
+            resume: resumeText,
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Analysis failed');
-        }
-
-        const result = await response.json();
         setAnalysisResult(result);
         setStage('result');
 
