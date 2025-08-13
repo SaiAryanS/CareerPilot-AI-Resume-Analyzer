@@ -31,7 +31,7 @@ Follow these instructions to set up and run the project locally.
 
 -   [Node.js](https://nodejs.org/en) (version 18 or higher)
 -   npm or yarn
--   A MongoDB database (you can get a free one from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
+-   A MongoDB database (either a local installation or a free cloud instance from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
 
 ### Installation
 
@@ -47,15 +47,27 @@ Follow these instructions to set up and run the project locally.
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the root of your project and add your Gemini API key and MongoDB connection string:
-    ```
+    Create a `.env` file in the root of your project and add your Gemini API key and MongoDB connection string.
+
+    ```env
     # Obtain a Gemini API key from Google AI Studio: https://aistudio.google.com/app/apikey
     GEMINI_API_KEY=your_gemini_api_key_here
 
-    # Get your connection string from MongoDB Atlas after creating a free cluster
-    # It should look like: mongodb+srv://<username>:<password>@clustername.mongodb.net/your_db_name?retryWrites=true&w=majority
+    # Add your MongoDB connection string below.
+    # Choose ONE of the options (Atlas or Local).
     MONGODB_URI=your_mongodb_connection_string_here
     ```
+    
+    #### Option A: MongoDB Atlas (Cloud)
+    This is the recommended option for easy setup.
+    1. Get your connection string from the MongoDB Atlas dashboard.
+    2. It should look like: `mongodb+srv://<username>:<password>@clustername.mongodb.net/your_db_name?retryWrites=true&w=majority`
+    3. Replace `<username>`, `<password>`, and `your_db_name` with your credentials.
+
+    #### Option B: Local MongoDB Instance
+    Use this option if you have MongoDB installed and running on your machine.
+    1. The standard local connection string is `mongodb://localhost:27017/your_db_name`.
+    2. Replace `your_db_name` with the name you want for your database (e.g., `resume-analyzer`).
 
 ### Running the Application
 
