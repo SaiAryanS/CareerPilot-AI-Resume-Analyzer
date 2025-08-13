@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
-import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
 
 interface ResultViewProps {
   result: AnalyzeSkillsOutput;
@@ -42,7 +42,7 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const { bgColor, textColor, icon, statusText } = getStatusStyle();
 
   return (
-    <Card className="w-full max-w-2xl mx-auto border-primary/20 shadow-primary/5 shadow-lg">
+    <Card className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -60,6 +60,23 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
           <p className="text-muted-foreground text-sm font-medium">MATCH SCORE</p>
           <p className={`font-bold text-6xl font-headline ${textColor}`}>{result.matchScore}%</p>
         </div>
+
+        {result.impliedSkills && result.impliedSkills.length > 0 && (
+          <div>
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-cyan-400"><Info size={18} /> Implied Skills Analysis</h3>
+            <div className="space-y-3 rounded-md border border-cyan-500/20 bg-cyan-500/5 p-4">
+              {result.impliedSkills.map((item, index) => (
+                <div key={index} className="text-sm">
+                  <p className="font-semibold">The AI inferred you have the skill: <Badge variant="outline" className="text-cyan-300 border-cyan-500/30">{item.skill}</Badge></p>
+                  <p className="text-muted-foreground mt-1">
+                    <span className="font-medium text-foreground/80">Because your resume says:</span> "{item.context}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-green-400"><CheckCircle2 size={18} /> Matching Skills</h3>
@@ -78,6 +95,7 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
             </div>
           </div>
         </div>
+
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row gap-4">
         <Button onClick={onTryAgain} variant="outline" className="w-full sm:w-auto">Analyze Another</Button>

@@ -23,8 +23,12 @@ export type AnalyzeSkillsInput = z.infer<typeof AnalyzeSkillsInputSchema>;
 
 const AnalyzeSkillsOutputSchema = z.object({
   matchScore: z.number().describe('The percentage match score between the resume and the job description.'),
-  matchingSkills: z.array(z.string()).describe('A list of skills that match between the resume and the job description.'),
+  matchingSkills: z.array(z.string()).describe('A list of skills that are explicitly mentioned in both the resume and the job description.'),
   missingSkills: z.array(z.string()).describe('A list of skills that are in the job description but missing from the resume.'),
+  impliedSkills: z.array(z.object({
+    skill: z.string().describe('The skill that was implied.'),
+    context: z.string().describe('The sentence or phrase from the resume that implies the skill.'),
+  })).describe('A list of skills that were not explicitly mentioned but were inferred from the context of the resume.'),
   status: z.string().describe('Approval status based on the match score. Can be "Approved", "Needs Improvement", or "Not a Match".'),
 });
 export type AnalyzeSkillsOutput = z.infer<typeof AnalyzeSkillsOutputSchema>;
@@ -41,10 +45,11 @@ const analyzeSkillsPrompt = ai.definePrompt({
 
 Follow these steps for your analysis:
 1.  **Identify Core Requirements:** First, thoroughly analyze the Job Description to extract the key skills, technologies, and experience levels required for the role.
-2.  **Resume Skill Extraction:** Next, analyze the Resume to identify the candidate's skills, technologies, and accomplishments. Look for implied skills based on project descriptions and work history (e.g., if a candidate lists "built a REST API with Express.js," they possess "Node.js" and "API Development" skills).
-3.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume. Identify both the "Matching Skills" and the "Missing Skills." A skill is "matching" if it's present, either explicitly or contextually.
-4.  **Calculate Match Score:** Based on the comparison, calculate a \`matchScore\`. This score should reflect not just the presence of skills but also the depth of experience and relevance of accomplishments mentioned in the resume. A resume that demonstrates deep experience in a few key areas from the job description may be a better match than one that lists many skills with little context. The score must be a number between 0 and 100.
-5.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
+2.  **Resume Skill Extraction:** Next, analyze the Resume to identify the candidate's skills, technologies, and accomplishments.
+3.  **Identify Implied Skills:** This is a crucial step. Look for implied skills based on project descriptions and work history. For example, if a candidate lists "built a REST API with Express.js," they possess "Node.js" and "API Development" skills. For each implied skill you find, populate the \`impliedSkills\` array with the skill and the specific text from the resume that provided the context.
+4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume (both explicit and implied). Identify "Matching Skills" and "Missing Skills." A skill is "matching" if it's present.
+5.  **Calculate Match Score:** Based on the comparison, calculate a \`matchScore\`. This score should reflect not just the presence of skills but also the depth of experience and relevance of accomplishments mentioned in the resume. The score must be a number between 0 and 100.
+6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
     - 75% or higher: "Approved"
     - 50% to 74%: "Needs Improvement"
     - Below 50%: "Not a Match"
