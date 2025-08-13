@@ -109,15 +109,8 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
           {result.impliedSkills && result.impliedSkills.length > 0 && (
             <div>
               <h3 className="font-semibold mb-3 flex items-center gap-2 text-cyan-400"><Info size={18} /> Implied Skills Analysis</h3>
-              <div className="space-y-3 rounded-md border border-cyan-500/20 bg-cyan-500/5 p-4">
-                {result.impliedSkills.map((item, index) => (
-                  <div key={index} className="text-sm">
-                    <div className="font-semibold">The AI inferred you have the skill: <Badge variant="outline" className="text-cyan-300 border-cyan-500/30 ml-1">{item.skill}</Badge></div>
-                    <p className="text-muted-foreground mt-1">
-                      <span className="font-medium text-foreground/80">Because your resume says:</span> "{item.context}"
-                    </p>
-                  </div>
-                ))}
+              <div className="space-y-3 rounded-md border border-cyan-500/20 bg-cyan-500/5 p-4 text-sm text-muted-foreground">
+                <p className="leading-relaxed">{result.impliedSkills}</p>
               </div>
             </div>
           )}

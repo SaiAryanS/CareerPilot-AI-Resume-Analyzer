@@ -38,18 +38,9 @@ const AnalyzeSkillsOutputSchema = z.object({
       'A list of skills that are in the job description but missing from the resume.'
     ),
   impliedSkills: z
-    .array(
-      z.object({
-        skill: z.string().describe('The skill that was implied.'),
-        context: z
-          .string()
-          .describe(
-            'The sentence or phrase from the resume that implies the skill.'
-          ),
-      })
-    )
+    .string()
     .describe(
-      'A list of skills that were not explicitly mentioned but were inferred from the context of the resume. Each skill should only be listed once with the most relevant context.'
+      'A brief, narrative explanation of the kinds of skills that were inferred from the resume, with clear examples. For example: "The AI inferred skills like Node.js and API Development because the resume mentioned building a REST API with Express.js."'
     ),
   status: z
     .string()
@@ -78,10 +69,10 @@ Follow these steps for your analysis:
 
 2.  **Resume Skill Extraction:** Next, analyze the Resume to identify the candidate's skills, technologies, and accomplishments. Be intelligent about versions: recognize variations like "HTML5" or "CSS3" as equivalent to "HTML" and "CSS".
 
-3.  **Identify Implied Skills:** Look for implied skills based on project descriptions and work history. For example, if a candidate lists "built a REST API with Express.js," they possess "Node.js" and "API Development" skills. For each unique implied skill you find, populate the \`impliedSkills\` array. IMPORTANT: Only list each implied skill ONCE, choosing the single most relevant phrase from the resume as its context.
+3.  **Identify Implied Skills and Consolidate:** Look for implied skills based on project descriptions and work history. Then, create a brief, narrative summary for the \`impliedSkills\` field. This summary should explain the *types* of skills you inferred and give one or two clear examples. For instance: "The AI inferred skills like Node.js and API Development from projects listed, such as the one mentioning the creation of a REST API with Express.js." Do NOT simply list every inferred skill.
 
 4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume.
-    -   Identify "Matching Skills": A skill is matching if it's explicitly mentioned OR if you identified it as an implied skill, BUT it must also be relevant to the Job Description (either a Core Requirement or a Preferred Skill). All implied skills that are relevant must also be in the matching skills list. The final list of matching skills must be an array of unique strings.
+    -   Identify "Matching Skills": A skill is matching if it's explicitly mentioned OR if you identified it as an implied skill, AND it is relevant to the Job Description (either a Core Requirement or a Preferred Skill). All relevant implied skills must also be in the matching skills list. The final list of matching skills must be an array of unique strings.
     -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
 
 5.  **Calculate Weighted Match Score:** This is the most critical step. Calculate the \`matchScore\` using a weighted system. Do not use a simple ratio.
