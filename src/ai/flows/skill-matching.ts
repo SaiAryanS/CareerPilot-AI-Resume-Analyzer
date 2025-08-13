@@ -22,6 +22,11 @@ const AnalyzeSkillsOutputSchema = z.object({
     .describe(
       'The percentage match score between the resume and the job description.'
     ),
+  scoreRationale: z
+    .string()
+    .describe(
+      'A brief explanation for the given score, considering core vs. preferred skills.'
+    ),
   matchingSkills: z
     .array(z.string())
     .describe(
@@ -67,17 +72,28 @@ const analyzeSkillsPrompt = ai.definePrompt({
   prompt: `You are an expert AI career analyst. Your task is to perform a deep, contextual analysis of a resume against a job description. Do not rely on simple keyword matching. Instead, focus on semantic meaning, experience, and accomplishments. Your analysis MUST be strictly grounded in the skills and technologies mentioned in the Job Description.
 
 Follow these steps for your analysis:
-1.  **Identify Core Requirements:** First, thoroughly analyze the Job Description to extract the key skills, technologies, and experience levels required for the role. This is your source of truth.
+1.  **Job Description Analysis:** First, thoroughly analyze the Job Description to extract the required skills and categorize them.
+    -   **Core Requirements:** Identify the absolute must-have skills, technologies, and qualifications. These are often explicitly mentioned as "required", "must have", or are central to the role's main responsibilities.
+    -   **Preferred Skills:** Identify skills that are listed as "plus", "bonus", "nice to have", or are clearly secondary to the core functions.
+
 2.  **Resume Skill Extraction:** Next, analyze the Resume to identify the candidate's skills, technologies, and accomplishments. Be intelligent about versions: recognize variations like "HTML5" or "CSS3" as equivalent to "HTML" and "CSS".
+
 3.  **Identify Implied Skills:** Look for implied skills based on project descriptions and work history. For example, if a candidate lists "built a REST API with Express.js," they possess "Node.js" and "API Development" skills. For each unique implied skill you find, populate the \`impliedSkills\` array. IMPORTANT: Only list each implied skill ONCE, choosing the single most relevant phrase from the resume as its context.
+
 4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume.
-    - Identify "Matching Skills": A skill is matching if it's explicitly mentioned OR if you identified it as an implied skill, BUT it must also be relevant to the Job Description. Do NOT list a skill as matching if it is not required by the job. All implied skills that are relevant must also be in the matching skills list. The final list of matching skills must be an array of unique strings.
-    - Identify "Missing Skills": These are skills from the job description not found in the resume.
-5.  **Calculate Match Score:** Calculate the \`matchScore\` based on the ratio of matching skills to the total number of skills required by the job description. The final score should primarily reflect skill coverage. For example, if there are 10 required skills and the candidate has 6 of them (either explicitly or implied), the score should be around 60%. The score must be a number between 0 and 100.
+    -   Identify "Matching Skills": A skill is matching if it's explicitly mentioned OR if you identified it as an implied skill, BUT it must also be relevant to the Job Description (either a Core Requirement or a Preferred Skill). All implied skills that are relevant must also be in the matching skills list. The final list of matching skills must be an array of unique strings.
+    -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
+
+5.  **Calculate Weighted Match Score:** This is the most critical step. Calculate the \`matchScore\` using a weighted system. Do not use a simple ratio.
+    -   **Core Skills Weight:** Assign a high weight to Core Requirements. A candidate's score should be heavily impacted by how many of these they possess. Missing even one core skill should significantly lower the score.
+    -   **Preferred Skills Weight:** Assign a lower weight to Preferred Skills. These should act as "boosters" to the score if the core requirements are met.
+    -   **Scoring Logic:** A candidate with all core skills should score high (e.g., 75-85%). The score then increases towards 100% based on how many preferred skills they have. A candidate missing several core skills should receive a low score, regardless of how many preferred skills they have.
+    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. For example: "The candidate has most of the core requirements like [Skill A, Skill B], but is missing the critical [Skill C], which lowered the score. They have several preferred skills which provided a small boost."
+
 6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
-    - 75% or higher: "Approved"
-    - 50% to 74%: "Needs Improvement"
-    - Below 50%: "Not a Match"
+    -   75% or higher: "Approved"
+    -   50% to 74%: "Needs Improvement"
+    -   Below 50%: "Not a Match"
 
 Job Description:
 {{{jobDescription}}}
