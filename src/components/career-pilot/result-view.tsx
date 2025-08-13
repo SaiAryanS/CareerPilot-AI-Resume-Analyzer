@@ -49,31 +49,26 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const handleDownload = () => {
     if (!resultCardRef.current) return;
 
-    html2canvas(resultCardRef.current, { scale: 2, backgroundColor: null }).then((canvas) => {
+    html2canvas(resultCardRef.current, { 
+      scale: 2, 
+      backgroundColor: '#0a0a0a' // Dark background matching the theme
+    }).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
       const ratio = canvasWidth / canvasHeight;
-      const width = pdfWidth;
-      const height = width / ratio;
+      const pdfHeight = pdfWidth / ratio;
 
-      // Check if content exceeds page height, if so, split it (simple split)
-      if (height > pdfHeight) {
-        // This is a simplified split. For complex content, a more sophisticated approach is needed.
-        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      } else {
-        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      }
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save("resume-analysis.pdf");
     });
   };
 
   return (
     <>
-      <Card ref={resultCardRef} className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg">
+      <Card ref={resultCardRef} className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg bg-[#0a0a0a] p-4">
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -128,16 +123,16 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
           )}
 
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-4">
-          <Button onClick={onTryAgain} variant="outline" className="w-full sm:w-auto">Analyze Another</Button>
-        </CardFooter>
       </Card>
-       <div className="w-full max-w-3xl mx-auto mt-4">
+      <div className="w-full max-w-3xl mx-auto mt-6">
+        <CardFooter className="flex flex-col sm:flex-row gap-4 justify-start p-0">
+          <Button onClick={onTryAgain} variant="outline" className="w-full sm:w-auto">Analyze Another</Button>
           <Button onClick={handleDownload} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
-        </div>
+        </CardFooter>
+      </div>
     </>
   );
 }
