@@ -67,7 +67,7 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
             <div className="space-y-3 rounded-md border border-cyan-500/20 bg-cyan-500/5 p-4">
               {result.impliedSkills.map((item, index) => (
                 <div key={index} className="text-sm">
-                  <p className="font-semibold">The AI inferred you have the skill: <Badge variant="outline" className="text-cyan-300 border-cyan-500/30">{item.skill}</Badge></p>
+                  <div className="font-semibold">The AI inferred you have the skill: <Badge variant="outline" className="text-cyan-300 border-cyan-500/30 ml-1">{item.skill}</Badge></div>
                   <p className="text-muted-foreground mt-1">
                     <span className="font-medium text-foreground/80">Because your resume says:</span> "{item.context}"
                   </p>
