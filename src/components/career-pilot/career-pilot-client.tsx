@@ -97,7 +97,7 @@ export default function CareerPilotClient() {
   const renderContent = () => {
     if (isLoading && stage === 'analysis') {
       return (
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-2xl mx-auto">
           <CardContent className="p-10 flex flex-col items-center justify-center space-y-4 h-[450px]">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="font-headline text-xl text-primary">Analyzing Your Profile...</p>
