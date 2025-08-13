@@ -12,13 +12,16 @@ CareerPilot AI is an intelligent web application designed to help job seekers an
     -   `missingSkills`: A list of skills required by the job but absent from the resume.
     -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match").
 -   **Visual Results Display**: The analysis results are presented in a clear, easy-to-understand format with color-coded feedback based on the match score.
+-   **Downloadable Reports**: Users can download a PDF of their analysis results.
+-   **Analysis History**: Securely saves each analysis result to a MongoDB database for future reference.
 
 ## Technology Stack
 
 -   **Frontend**: [Next.js](https://nextjs.org/) with React & TypeScript
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [ShadCN UI](https://ui.shadcn.com/) components
 -   **AI & Backend**: [Genkit](https://firebase.google.com/docs/genkit) (with Google's Gemini models) for AI-powered analysis
--   **PDF Parsing**: [pdfjs-dist](https://mozilla.github.io/pdf.js/) for extracting text from resumes
+-   **PDF Parsing**: [pdfjs-dist](https://mozilla.github.io/pdf.js/) for client-side text extraction from resumes
+-   **Database**: [MongoDB](https://www.mongodb.com/) for storing analysis results
 
 ## Getting Started
 
@@ -28,6 +31,7 @@ Follow these instructions to set up and run the project locally.
 
 -   [Node.js](https://nodejs.org/en) (version 18 or higher)
 -   npm or yarn
+-   A MongoDB database (you can get a free one from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
 
 ### Installation
 
@@ -43,11 +47,15 @@ Follow these instructions to set up and run the project locally.
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the root of your project and add your Gemini API key:
+    Create a `.env` file in the root of your project and add your Gemini API key and MongoDB connection string:
     ```
-    GEMINI_API_KEY=your_api_key_here
+    # Obtain a Gemini API key from Google AI Studio: https://aistudio.google.com/app/apikey
+    GEMINI_API_KEY=your_gemini_api_key_here
+
+    # Get your connection string from MongoDB Atlas after creating a free cluster
+    # It should look like: mongodb+srv://<username>:<password>@clustername.mongodb.net/your_db_name?retryWrites=true&w=majority
+    MONGODB_URI=your_mongodb_connection_string_here
     ```
-    You can obtain an API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ### Running the Application
 
