@@ -74,6 +74,19 @@ export default function CareerPilotClient() {
 
         setAnalysisResult(result);
         setStage('result');
+        
+        // Securely save the analysis to the database via our API route
+        await fetch('/api/save-analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resumeText,
+                jobDescription: jobDescriptionKey,
+                analysisResult: result,
+            }),
+        });
 
     } catch (error) {
         console.error("Analysis failed:", error);
