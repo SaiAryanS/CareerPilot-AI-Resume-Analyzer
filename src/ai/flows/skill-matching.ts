@@ -75,11 +75,11 @@ Follow these steps for your analysis:
     -   Identify "Matching Skills": A skill is matching if it's explicitly mentioned OR if you identified it as an implied skill, AND it is relevant to the Job Description (either a Core Requirement or a Preferred Skill). All relevant implied skills must also be in the matching skills list. The final list of matching skills must be an array of unique strings.
     -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
 
-5.  **Calculate Weighted Match Score:** This is the most critical step. Calculate the \`matchScore\` using a weighted system. Do not use a simple ratio.
-    -   **Core Skills Weight:** Assign a high weight to Core Requirements. A candidate's score should be heavily impacted by how many of these they possess. Missing even one core skill should significantly lower the score.
-    -   **Preferred Skills Weight:** Assign a lower weight to Preferred Skills. These should act as "boosters" to the score if the core requirements are met.
-    -   **Scoring Logic:** A candidate with all core skills should score high (e.g., 75-85%). The score then increases towards 100% based on how many preferred skills they have. A candidate missing several core skills should receive a low score, regardless of how many preferred skills they have.
-    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. For example: "The candidate has most of the core requirements like [Skill A, Skill B], but is missing the critical [Skill C], which lowered the score. They have several preferred skills which provided a small boost."
+5.  **Calculate Weighted Match Score (HARSH):** This is the most critical step. Calculate the \`matchScore\` using a weighted system that is harsh and realistic. Do not use a simple ratio.
+    -   **Core Skills Weight:** Assign a very high weight to Core Requirements. A candidate's score should be heavily impacted by how many of these they possess. **Missing even one or two core skills should significantly lower the score and make it very difficult to achieve a high score.**
+    -   **Preferred Skills Weight:** Assign a much lower weight to Preferred Skills. These should only act as small "boosters" to the score if the core requirements are substantially met.
+    -   **Scoring Logic:** A candidate with all core skills should score high (e.g., 75-85%). The score then increases towards 100% based on how many preferred skills they have. **A candidate missing several core skills should receive a low score (e.g., under 50%), regardless of how many preferred skills they have.**
+    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. For example: "The candidate has most of the core requirements like [Skill A, Skill B], but is missing the critical [Skill C], which significantly lowered the score. They have several preferred skills which provided only a small boost."
 
 6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
     -   75% or higher: "Approved"
