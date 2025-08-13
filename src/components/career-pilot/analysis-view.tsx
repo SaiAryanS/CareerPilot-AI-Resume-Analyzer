@@ -207,7 +207,7 @@ export function AnalysisView({ jobDescription, onJobDescriptionChange, resumeFil
             </SelectContent>
           </Select>
           {jobDescription && (
-            <div className="p-4 mt-2 text-sm text-muted-foreground bg-muted/30 rounded-md border border-border/50 max-h-40 overflow-y-auto whitespace-pre-line">
+            <div className="p-4 mt-2 text-sm text-muted-foreground bg-muted/30 rounded-md border border-border/50 whitespace-pre-line">
                 {jobDescriptions[jobDescription as keyof typeof jobDescriptions]}
             </div>
           )}
