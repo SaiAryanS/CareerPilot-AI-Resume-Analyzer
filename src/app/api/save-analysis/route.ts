@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ message: 'Analysis saved successfully', id: result.insertedId }, { status: 201 });
-  } catch (error)
+  } catch (error) {
     console.error('Failed to save analysis:', error);
     return NextResponse.json({ message: 'Failed to save analysis' }, { status: 500 });
   }
