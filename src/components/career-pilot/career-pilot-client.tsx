@@ -243,9 +243,9 @@ export default function CareerPilotClient() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                resumeText,
+                resumeFileName: resumeFile.name,
                 jobDescription: jobDescriptionKey,
-                analysisResult: result,
+                matchScore: result.matchScore,
             }),
         });
 
@@ -313,5 +313,3 @@ export default function CareerPilotClient() {
     </div>
   );
 }
-
-    

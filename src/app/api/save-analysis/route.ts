@@ -4,9 +4,9 @@ import clientPromise from '@/lib/mongodb';
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { resumeText, jobDescription, analysisResult } = data;
+    const { resumeFileName, jobDescription, matchScore } = data;
 
-    if (!resumeText || !jobDescription || !analysisResult) {
+    if (!resumeFileName || !jobDescription || typeof matchScore === 'undefined') {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -16,14 +16,14 @@ export async function POST(request: Request) {
     const analysisCollection = db.collection('analyses');
 
     const result = await analysisCollection.insertOne({
-      resume: resumeText,
+      resumeFileName,
       jobDescription,
-      analysis: analysisResult,
+      matchScore,
       createdAt: new Date(),
     });
 
     return NextResponse.json({ message: 'Analysis saved successfully', id: result.insertedId }, { status: 201 });
-  } catch (error) {
+  } catch (error)
     console.error('Failed to save analysis:', error);
     return NextResponse.json({ message: 'Failed to save analysis' }, { status: 500 });
   }
