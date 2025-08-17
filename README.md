@@ -6,14 +6,15 @@ CareerPilot AI is an intelligent web application designed to help job seekers an
 
 -   **Dynamic Job Description Selection**: Users can choose from a curated list of job descriptions for various tech roles.
 -   **Easy Resume Upload**: A simple interface allows users to upload their resumes in PDF format.
--   **Advanced AI Analysis**: Utilizes a sophisticated AI prompt to perform a deep, contextual analysis of the user's resume against the selected job description. The analysis identifies:
-    -   `matchScore`: A percentage score (0-100) indicating the resume's relevance.
+-   **Advanced AI Analysis**: Utilizes a sophisticated AI prompt to perform a deep, contextual analysis of the user's resume against the selected job description. The AI is instructed to be harsh and realistic, mimicking a real recruiter. The analysis identifies:
+    -   `matchScore`: A percentage score (0-100) based on a weighted system that heavily prioritizes "core" required skills over "preferred" skills.
     -   `matchingSkills`: A list of skills present in both the resume and job description.
     -   `missingSkills`: A list of skills required by the job but absent from the resume.
-    -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match").
+    -   `impliedSkills`: A narrative explanation of skills the AI inferred from the resume's context (e.g., inferring "Node.js" from a project using "Express.js").
+    -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match") based on the weighted score.
 -   **Visual Results Display**: The analysis results are presented in a clear, easy-to-understand format with color-coded feedback based on the match score.
 -   **Downloadable Reports**: Users can download a PDF of their analysis results.
--   **Analysis History**: Securely saves each analysis result to a MongoDB database for future reference.
+-   **Privacy-Focused Analysis History**: Securely saves a summary of each analysis (resume filename, job title, and score) to a MongoDB database for future reference, without storing the full resume content.
 
 ## Technology Stack
 
@@ -67,7 +68,7 @@ Follow these instructions to set up and run the project locally.
     #### Option B: Local MongoDB Instance
     Use this option if you have MongoDB installed and running on your machine.
     1. The standard local connection string is `mongodb://localhost:27017/your_db_name`.
-    2. Replace `your_db_name` with the name you want for your database (e.g., `resume-analyzer`).
+    2. Replace `your_db_name` with the name you want for your database (e.g., `career-pilot`).
 
 ### Running the Application
 
