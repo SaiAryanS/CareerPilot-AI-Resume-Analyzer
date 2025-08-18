@@ -51,12 +51,20 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const { bgColor, textColor, icon, statusText } = getStatusStyle();
 
   const handleDownload = () => {
-    if (!resultCardRef.current) return;
+    const cardElement = resultCardRef.current;
+    if (!cardElement) return;
 
-    html2canvas(resultCardRef.current, { 
+    // Add padding for better PDF layout before capturing
+    const originalPadding = cardElement.style.padding;
+    cardElement.style.padding = '1rem';
+
+    html2canvas(cardElement, { 
       scale: 2, 
-      backgroundColor: '#0a0a0a' // Dark background matching the theme
+      backgroundColor: '#0a0a0a' // Explicitly set background for capture
     }).then((canvas) => {
+      // Restore original padding after capture
+      cardElement.style.padding = originalPadding;
+      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -72,7 +80,11 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
 
   return (
     <>
-      <Card ref={resultCardRef} className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg bg-[#0a0a0a] p-4">
+      <Card 
+        ref={resultCardRef} 
+        className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg"
+        style={{ backgroundColor: '#0a0a0a' }} // Force background for html2canvas
+      >
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
