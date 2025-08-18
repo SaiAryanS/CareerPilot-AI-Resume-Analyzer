@@ -53,28 +53,46 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const handleDownload = () => {
     const cardElement = resultCardRef.current;
     if (!cardElement) return;
-
-    // Add padding for better PDF layout before capturing
-    const originalPadding = cardElement.style.padding;
-    cardElement.style.padding = '1rem';
-
-    html2canvas(cardElement, { 
-      scale: 2, 
-      backgroundColor: '#0a0a0a' // Explicitly set background for capture
+  
+    // Temporarily adjust style for capture
+    const originalStyle = {
+      padding: cardElement.style.padding,
+      width: cardElement.style.width,
+    };
+    cardElement.style.padding = '24px'; // Match card padding
+    cardElement.style.width = `${cardElement.offsetWidth}px`; // Fix width
+  
+    html2canvas(cardElement, {
+      scale: 2, // Increase resolution for better quality
+      backgroundColor: '#0a0a0a', // Dark background for the canvas
+      useCORS: true,
+      logging: false,
     }).then((canvas) => {
-      // Restore original padding after capture
-      cardElement.style.padding = originalPadding;
-      
+      // Restore original style after capture
+      cardElement.style.padding = originalStyle.padding;
+      cardElement.style.width = originalStyle.width;
+  
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+      });
+  
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-      const pdfHeight = pdfWidth / ratio;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save("resume-analysis.pdf");
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      let height = imgHeight;
+      let position = 0;
+  
+      // Check if content is taller than one page
+      if (height > pdf.internal.pageSize.getHeight() - 20) {
+          height = pdf.internal.pageSize.getHeight() - 20; // with margin
+      }
+      
+      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, height); // with margin
+      pdf.save('resume-analysis-report.pdf');
     });
   };
 
