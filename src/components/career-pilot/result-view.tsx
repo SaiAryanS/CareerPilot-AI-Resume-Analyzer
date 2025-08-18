@@ -16,8 +16,12 @@ interface ResultViewProps {
 export function ResultView({ result, onTryAgain }: ResultViewProps) {
   const resultCardRef = useRef<HTMLDivElement>(null);
 
+  // The AI should return a score between 0 and 100.
+  // If it returns a decimal (e.g., 0.92), multiply by 100 to get the percentage.
+  const displayScore = result.matchScore > 1 ? result.matchScore : Math.round(result.matchScore * 100);
+
   const getStatusStyle = () => {
-    if (result.matchScore >= 75) {
+    if (displayScore >= 75) {
       return {
         bgColor: 'bg-green-500/10',
         textColor: 'text-green-400',
@@ -25,7 +29,7 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
         statusText: 'Approved',
         badgeClass: 'text-green-300 border-green-500/30'
       };
-    } else if (result.matchScore >= 50) {
+    } else if (displayScore >= 50) {
       return {
         bgColor: 'bg-yellow-500/10',
         textColor: 'text-yellow-400',
@@ -84,7 +88,7 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
         <CardContent className="space-y-6">
           <div className="text-center py-6 bg-muted/50 rounded-lg">
             <p className="text-muted-foreground text-sm font-medium">MATCH SCORE</p>
-            <p className={`font-bold text-6xl font-headline ${textColor}`}>{result.matchScore}%</p>
+            <p className={`font-bold text-6xl font-headline ${textColor}`}>{displayScore}%</p>
             {result.scoreRationale && (
               <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">{result.scoreRationale}</p>
             )}

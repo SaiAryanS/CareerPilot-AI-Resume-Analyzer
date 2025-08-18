@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Implements AI skill matching between a resume and a job description.
@@ -21,7 +20,7 @@ const AnalyzeSkillsOutputSchema = z.object({
   matchScore: z
     .number()
     .describe(
-      'The percentage match score between the resume and the job description.'
+      'The percentage match score between the resume and the job description, from 0 to 100.'
     ),
   scoreRationale: z
     .string()
@@ -86,6 +85,7 @@ Follow these steps for your analysis:
     -   **Proportional Penalties:** The penalty for a missing skill should be proportional to its importance. For example, missing a database skill is significant, but if the candidate has a strong equivalent (SQL instead of NoSQL), the penalty should be reduced. The score should reflect their high overall competence, not just the one gap.
     -   **Irrelevancy Penalty:** Do NOT award points for skills on the resume that are not relevant to the Job Description. For example, if the job is for a "UI/UX Designer," skills like "Python" or "SQL" are irrelevant and should not contribute positively to the score.
     -   **Project Quality Multiplier:** Use your analysis from Step 2. A resume with strong, relevant projects that demonstrate deep experience should receive a higher score. A resume that simply lists skills without context should be scored lower, even if the keywords match.
+    -   **Final Score Format:** The final \`matchScore\` MUST be a whole number integer between 0 and 100. Do not return a decimal.
     -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. Justify the score based on the presence or absence of critical skills, the quality of experience, and any skill equivalencies you considered.
 
 6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
