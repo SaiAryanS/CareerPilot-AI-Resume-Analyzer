@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
-import { CheckCircle2, XCircle, AlertTriangle, Info, Download } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Info, Download, Lightbulb } from "lucide-react";
 
 interface ResultViewProps {
   result: AnalyzeSkillsOutput;
@@ -85,6 +85,9 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
           <div className="text-center py-6 bg-muted/50 rounded-lg">
             <p className="text-muted-foreground text-sm font-medium">MATCH SCORE</p>
             <p className={`font-bold text-6xl font-headline ${textColor}`}>{result.matchScore}%</p>
+            {result.scoreRationale && (
+              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">{result.scoreRationale}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
