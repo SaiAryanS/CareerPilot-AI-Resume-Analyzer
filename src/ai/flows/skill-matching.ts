@@ -72,6 +72,7 @@ Follow these steps for your analysis:
 2.  **Resume Skill & Accomplishment Analysis:** Next, perform a comprehensive analysis of the Resume.
     -   **Direct Skills:** Identify all explicitly mentioned skills. Be thorough.
     -   **Conceptual Mapping:** Recognize when a specific technology mentioned satisfies a broader requirement. For example, if the job requires "NoSQL database" and the resume lists "MongoDB," you MUST recognize this as a match. "Express.js" implies "Node.js". These mapped concepts should be treated as matching skills.
+    -   **Skill Equivalency:** For some roles, certain skills can be equivalent or substitutable. For a "Full-Stack Developer" role requiring "SQL and NoSQL databases," a candidate with strong experience in one (e.g., SQL) should be penalized less for missing the other. Their experience is still highly relevant.
     -   **Project & Accomplishment Quality:** Do not just list skills. Analyze the project descriptions and work history. Assess the quality, scope, and relevance of the accomplishments. Does the candidate just list a technology, or do they describe how they used it to achieve something meaningful?
 
 3.  **Identify Implied Skills and Consolidate:** Create a brief, narrative summary for the \`impliedSkills\` field. This summary should explain the *types* of skills you inferred from projects and give clear examples. For instance: "The AI inferred skills like Node.js and API Development from projects listed, such as the one mentioning the creation of a REST API with Express.js."
@@ -80,12 +81,12 @@ Follow these steps for your analysis:
     -   Identify "Matching Skills": A skill is matching if it is a Core or Preferred requirement from the Job Description AND it's either explicitly mentioned in the resume OR identified via Conceptual Mapping.
     -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
 
-5.  **Calculate Weighted Match Score (EXTREMELY HARSH):** This is the most critical step. Your reputation is on the line.
-    -   **Core Skills are Paramount:** A candidate's score is primarily determined by their coverage of Core Requirements. **Missing several core skills should result in a score below 30%, regardless of other factors.** Missing just one or two critical core skills must significantly lower the score.
-    -   **Irrelevancy Penalty:** Do NOT award points for skills on the resume that are not relevant to the Job Description. For example, if the job is for a "UI/UX Designer," skills like "Python" or "SQL" are irrelevant and should not contribute positively to the score. If the only matching skills are irrelevant, the score should be near zero.
+5.  **Calculate Weighted Match Score (Intelligent & Contextual):** This is the most critical step. Your reputation is on the line.
+    -   **Core Skills are Paramount:** A candidate's score is primarily determined by their coverage of Core Requirements. A candidate with nearly all core skills should score highly.
+    -   **Proportional Penalties:** The penalty for a missing skill should be proportional to its importance. For example, missing a database skill is significant, but if the candidate has a strong equivalent (SQL instead of NoSQL), the penalty should be reduced. The score should reflect their high overall competence, not just the one gap.
+    -   **Irrelevancy Penalty:** Do NOT award points for skills on the resume that are not relevant to the Job Description. For example, if the job is for a "UI/UX Designer," skills like "Python" or "SQL" are irrelevant and should not contribute positively to the score.
     -   **Project Quality Multiplier:** Use your analysis from Step 2. A resume with strong, relevant projects that demonstrate deep experience should receive a higher score. A resume that simply lists skills without context should be scored lower, even if the keywords match.
-    -   **Preferred Skills as Boosters:** Preferred skills only provide a small boost if, and only if, the core requirements are substantially met.
-    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. Justify the score based on the presence or absence of critical skills and the quality of the candidate's demonstrated experience.
+    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. Justify the score based on the presence or absence of critical skills, the quality of experience, and any skill equivalencies you considered.
 
 6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
     -   75% or higher: "Approved"
