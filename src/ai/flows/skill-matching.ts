@@ -60,28 +60,31 @@ const analyzeSkillsPrompt = ai.definePrompt({
   name: 'analyzeSkillsPrompt',
   input: {schema: AnalyzeSkillsInputSchema},
   output: {schema: AnalyzeSkillsOutputSchema},
-  prompt: `You are an expert AI career analyst. Your task is to perform a deep, contextual analysis of a resume against a job description. Your analysis MUST be strictly grounded in the skills and technologies mentioned in the Job Description.
+  prompt: `You are an expert AI career analyst with the critical eye of a senior hiring manager. Your task is to perform a deep, contextual analysis of a resume against a job description. Your analysis MUST be harsh, realistic, and strictly grounded in the skills, technologies, and experience level required by the Job Description.
 
 Follow these steps for your analysis:
+
 1.  **Job Description Analysis:** First, thoroughly analyze the Job Description to extract the required skills and categorize them.
-    -   **Core Requirements:** Identify the absolute must-have skills, technologies, and qualifications. These are often explicitly mentioned as "required", "must have", or are central to the role's main responsibilities.
-    -   **Preferred Skills:** Identify skills that are listed as "plus", "bonus", "nice to have", or are clearly secondary to the core functions.
+    -   **Core Requirements:** Identify the absolute must-have skills, technologies, and qualifications. These are central to the role's main responsibilities.
+    -   **Preferred Skills:** Identify skills listed as "plus," "bonus," or are clearly secondary to the core functions.
 
-2.  **Resume Skill Extraction & Mapping:** Next, perform a comprehensive analysis of the Resume to identify the candidate's skills, technologies, and accomplishments.
-    -   **Direct Skills:** Identify all skills explicitly mentioned. Be thorough and do not miss any skills.
-    -   **Conceptual Mapping:** Recognize when a specific technology or tool mentioned in the resume satisfies a broader, more conceptual requirement from the job description. For example, if the job requires "NoSQL database" experience and the resume lists "MongoDB", you MUST recognize this as a match. Similarly, "Express.js" implies "Node.js". These mapped concepts should be treated as matching skills.
+2.  **Resume Skill & Accomplishment Analysis:** Next, perform a comprehensive analysis of the Resume.
+    -   **Direct Skills:** Identify all explicitly mentioned skills. Be thorough.
+    -   **Conceptual Mapping:** Recognize when a specific technology mentioned satisfies a broader requirement. For example, if the job requires "NoSQL database" and the resume lists "MongoDB," you MUST recognize this as a match. "Express.js" implies "Node.js". These mapped concepts should be treated as matching skills.
+    -   **Project & Accomplishment Quality:** Do not just list skills. Analyze the project descriptions and work history. Assess the quality, scope, and relevance of the accomplishments. Does the candidate just list a technology, or do they describe how they used it to achieve something meaningful?
 
-3.  **Identify Implied Skills and Consolidate:** Look for implied skills based on project descriptions and work history. Then, create a brief, narrative summary for the \`impliedSkills\` field. This summary should explain the *types* of skills you inferred and give one or two clear examples. For instance: "The AI inferred skills like Node.js and API Development from projects listed, such as the one mentioning the creation of a REST API with Express.js." Do NOT simply list every inferred skill.
+3.  **Identify Implied Skills and Consolidate:** Create a brief, narrative summary for the \`impliedSkills\` field. This summary should explain the *types* of skills you inferred from projects and give clear examples. For instance: "The AI inferred skills like Node.js and API Development from projects listed, such as the one mentioning the creation of a REST API with Express.js."
 
-4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills extracted from the Resume.
-    -   Identify "Matching Skills": A skill is matching if it's explicitly mentioned in the resume OR if it was identified via Conceptual Mapping, AND it is relevant to the Job Description (either a Core Requirement or a Preferred Skill). The final list of matching skills must be an array of unique strings.
-    -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume, either directly or through mapping.
+4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills and accomplishments from the Resume.
+    -   Identify "Matching Skills": A skill is matching if it is a Core or Preferred requirement from the Job Description AND it's either explicitly mentioned in the resume OR identified via Conceptual Mapping.
+    -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
 
-5.  **Calculate Weighted Match Score (HARSH):** This is the most critical step. Calculate the \`matchScore\` using a weighted system that is harsh and realistic.
-    -   **Core Skills Weight:** Assign a very high weight to Core Requirements. A candidate's score should be heavily impacted by how many of these they possess. **Missing even one or two core skills should significantly lower the score and make it very difficult to achieve a high score.**
-    -   **Preferred Skills Weight:** Assign a much lower weight to Preferred Skills. These should only act as small "boosters" to the score if the core requirements are substantially met.
-    -   **Scoring Logic:** A candidate with all core skills should score high (e.g., 75-85%). The score then increases towards 100% based on how many preferred skills they have. **A candidate missing several core skills should receive a low score (e.g., under 50%), regardless of how many preferred skills they have.**
-    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. For example: "The candidate has most of the core requirements like [Skill A, Skill B], but is missing the critical [Skill C], which significantly lowered the score. They have several preferred skills which provided only a small boost."
+5.  **Calculate Weighted Match Score (EXTREMELY HARSH):** This is the most critical step. Your reputation is on the line.
+    -   **Core Skills are Paramount:** A candidate's score is primarily determined by their coverage of Core Requirements. **Missing several core skills should result in a score below 30%, regardless of other factors.** Missing just one or two critical core skills must significantly lower the score.
+    -   **Irrelevancy Penalty:** Do NOT award points for skills on the resume that are not relevant to the Job Description. For example, if the job is for a "UI/UX Designer," skills like "Python" or "SQL" are irrelevant and should not contribute positively to the score. If the only matching skills are irrelevant, the score should be near zero.
+    -   **Project Quality Multiplier:** Use your analysis from Step 2. A resume with strong, relevant projects that demonstrate deep experience should receive a higher score. A resume that simply lists skills without context should be scored lower, even if the keywords match.
+    -   **Preferred Skills as Boosters:** Preferred skills only provide a small boost if, and only if, the core requirements are substantially met.
+    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. Justify the score based on the presence or absence of critical skills and the quality of the candidate's demonstrated experience.
 
 6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
     -   75% or higher: "Approved"
