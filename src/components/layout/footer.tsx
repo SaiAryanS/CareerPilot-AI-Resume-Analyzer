@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="flex items-center space-x-2">
           <Github className="h-5 w-5 text-muted-foreground" />
           <Link
-            href="https://github.com/Firebase-Genkit/career-pilot"
+            href="https://github.com/SaiAryanS/CareerPilot-AI-Resume-Analyzer/tree/master"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
