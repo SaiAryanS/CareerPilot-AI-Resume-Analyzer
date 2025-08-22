@@ -60,11 +60,15 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
+      // Simulate session by setting a flag in sessionStorage
+      sessionStorage.setItem('isLoggedIn', 'true');
+
       toast({
         title: "Login Successful",
         description: "Welcome back! Redirecting...",
       });
       router.push('/');
+      router.refresh(); // Force a refresh to update navbar state
     } catch (error: any) {
       toast({
         variant: "destructive",

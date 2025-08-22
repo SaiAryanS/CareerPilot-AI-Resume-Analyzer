@@ -59,11 +59,16 @@ export default function AdminLoginPage() {
         throw new Error(data.message || 'Admin login failed');
       }
 
+      // Simulate session by setting a flag in sessionStorage
+      sessionStorage.setItem('isLoggedIn', 'true');
+      sessionStorage.setItem('isAdmin', 'true');
+
       toast({
         title: "Admin Login Successful",
         description: "Redirecting to the admin dashboard...",
       });
       router.push('/admin/dashboard');
+      router.refresh(); // Force a refresh to update navbar state
     } catch (error: any) {
       toast({
         variant: "destructive",

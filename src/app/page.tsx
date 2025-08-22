@@ -1,17 +1,23 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CareerPilotClient from '@/components/career-pilot/career-pilot-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-// Mocked authentication state. In a real app, you'd use a context or session management library.
+// In a real app, this would use a proper session management library.
+// We use sessionStorage to persist the login state across reloads for this demo.
 const useMockAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // In a real app, this would be a function that checks for a valid session.
-  // For now, we can toggle this with a button or keep it false.
+
+  useEffect(() => {
+    // Check session storage when the component mounts
+    const loggedInStatus = sessionStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedInStatus);
+  }, []);
+
   return { isLoggedIn };
 };
 
@@ -38,12 +44,12 @@ function LandingPage() {
 }
 
 export default function Home() {
-  // In a real application, this would come from a global authentication context.
-  // For now, we will assume the user is logged in to show the analysis tool.
-  const userIsLoggedIn = true;
+  // We will now use a simulated auth state.
+  // In a real app, this would come from a global authentication context.
+  const { isLoggedIn } = useMockAuth();
 
 
-  if (userIsLoggedIn) {
+  if (isLoggedIn) {
     return (
       <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 pt-24 sm:pt-28 md:pt-32">
         <CareerPilotClient />

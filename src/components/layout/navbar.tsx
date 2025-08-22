@@ -17,34 +17,35 @@ import {
 type AuthState = 'user' | 'admin' | null;
 
 export default function Navbar() {
-  // In a real app, this state would come from a global context or session management.
   const [authState, setAuthState] = useState<AuthState>(null);
   const pathname = usePathname();
   const router = useRouter();
 
-  // This effect simulates checking session state based on the current URL.
-  // It's a placeholder until a proper session management system is in place.
+  // This effect simulates checking session state based on sessionStorage.
   useEffect(() => {
-    if (pathname.startsWith('/admin/dashboard')) {
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+
+    if (isAdmin) {
       setAuthState('admin');
-    } else if (pathname === '/' || pathname.startsWith('/history')) {
-      // For simplicity, we assume if you're at the root or history, you are a logged-in user.
-      // This logic will be replaced by real session management.
-      const userIsLoggedIn = true;
-      if (userIsLoggedIn && authState !== 'admin') {
-        setAuthState('user');
-      }
+    } else if (isLoggedIn) {
+      setAuthState('user');
     } else {
       setAuthState(null);
     }
-  }, [pathname, authState]);
+  }, [pathname]); // Re-check on path change
 
   const handleLogout = (isAdmin: boolean) => {
+    // Clear session storage on logout
+    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('isAdmin');
     setAuthState(null);
+    
     if (isAdmin) {
       router.push('/admin/login');
     } else {
-      router.push('/login');
+      // Redirect to the landing page for regular users
+      router.push('/');
     }
   };
 
