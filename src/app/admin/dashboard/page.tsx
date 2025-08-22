@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import clientPromise from "@/lib/mongodb";
 import { User } from "lucide-react";
+import ManageJobs from "@/components/admin/manage-jobs";
 
 async function getUsers() {
     try {
@@ -39,56 +40,80 @@ async function getUsers() {
     }
 }
 
+async function getJobs() {
+    try {
+        const client = await clientPromise;
+        const db = client.db();
+        const jobs = await db
+            .collection("job_descriptions")
+            .find({})
+            .sort({ title: 1 })
+            .toArray();
+        return JSON.parse(JSON.stringify(jobs));
+    } catch (error) {
+        console.error("Failed to fetch jobs:", error);
+        return [];
+    }
+}
+
 
 export default async function AdminDashboardPage() {
-    const users = await getUsers();
+    // We fetch initial data on the server to avoid a loading flash on the client.
+    const initialUsers = await getUsers();
+    const initialJobs = await getJobs();
 
     return (
         <main className="min-h-screen container mx-auto p-4 pt-24 sm:pt-28 md:pt-32">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-2xl">Admin Dashboard</CardTitle>
-                    <CardDescription>
-                        Welcome, Admin. Here is a summary of user activity.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center">
-                        <User className="mr-2 h-5 w-5" />
-                        Registered Users ({users.length})
-                    </h3>
-                    <div className="border rounded-md">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Username</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Phone Number</TableHead>
-                                    <TableHead>Registration Date</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {users.length > 0 ? (
-                                    users.map((user) => (
-                                        <TableRow key={user._id}>
-                                            <TableCell className="font-medium">{user.username}</TableCell>
-                                            <TableCell>{user.email}</TableCell>
-                                            <TableCell>{user.phoneNumber}</TableCell>
-                                            <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
+            <div className="space-y-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl">Admin Dashboard</CardTitle>
+                        <CardDescription>
+                            Welcome, Admin. Here is a summary of user activity and job descriptions.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <User className="mr-2 h-5 w-5" />
+                            Registered Users ({initialUsers.length})
+                        </h3>
+                        <div className="border rounded-md">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                                            No registered users found.
-                                        </TableCell>
+                                        <TableHead>Username</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Phone Number</TableHead>
+                                        <TableHead>Registration Date</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                                </TableHeader>
+                                <TableBody>
+                                    {initialUsers.length > 0 ? (
+                                        initialUsers.map((user) => (
+                                            <TableRow key={user._id}>
+                                                <TableCell className="font-medium">{user.username}</TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>{user.phoneNumber}</TableCell>
+                                                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                                No registered users found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Job Description Management Section */}
+                <ManageJobs initialJobs={initialJobs} />
+
+            </div>
         </main>
     );
 }
