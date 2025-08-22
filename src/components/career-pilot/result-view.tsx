@@ -6,14 +6,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
-import { CheckCircle2, XCircle, AlertTriangle, Info, Download, Lightbulb } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Info, Download, Briefcase } from "lucide-react";
 
 interface ResultViewProps {
   result: AnalyzeSkillsOutput;
   onTryAgain: () => void;
+  jobDescription: string;
 }
 
-export function ResultView({ result, onTryAgain }: ResultViewProps) {
+export function ResultView({ result, onTryAgain, jobDescription }: ResultViewProps) {
   const resultCardRef = useRef<HTMLDivElement>(null);
 
   // The AI should return a score between 0 and 100.
@@ -80,18 +81,24 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
       });
   
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgProps = pdf.getImageProperties(imgData);
       const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      let height = imgHeight;
+      let heightLeft = imgHeight;
       let position = 0;
+      const margin = 10;
   
-      // Check if content is taller than one page
-      if (height > pdf.internal.pageSize.getHeight() - 20) {
-          height = pdf.internal.pageSize.getHeight() - 20; // with margin
+      pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin * 2), imgHeight);
+      heightLeft -= pdfHeight;
+  
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin*2), imgHeight);
+        heightLeft -= pdfHeight;
       }
       
-      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, height); // with margin
       pdf.save('resume-analysis-report.pdf');
     });
   };
@@ -152,6 +159,14 @@ export function ResultView({ result, onTryAgain }: ResultViewProps) {
             </div>
           )}
 
+          {jobDescription && (
+            <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary"><Briefcase size={18} /> Job Description Analyzed</h3>
+                <div className="space-y-3 rounded-md border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground max-h-48 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap font-body">{jobDescription}</pre>
+                </div>
+            </div>
+          )}
         </CardContent>
       </Card>
       <div className="w-full max-w-3xl mx-auto mt-6">

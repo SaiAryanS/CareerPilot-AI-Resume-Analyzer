@@ -239,6 +239,7 @@ export default function CareerPilotClient() {
         return analysisResult && <ResultView
           result={analysisResult}
           onTryAgain={resetAnalysis}
+          jobDescription={jobDescriptions[jobDescriptionKey as keyof typeof jobDescriptions]}
         />;
       default:
         return null;
