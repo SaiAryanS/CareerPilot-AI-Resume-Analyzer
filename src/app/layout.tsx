@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import Navbar from "@/components/layout/navbar";
 
 export const metadata: Metadata = {
   title: "Resume Analysis",
@@ -24,6 +25,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
+        <Navbar />
         {children}
         <Toaster />
       </body>
