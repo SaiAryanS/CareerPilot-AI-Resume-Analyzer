@@ -42,13 +42,13 @@ export default function Navbar() {
     sessionStorage.removeItem('userEmail');
     setAuthState(null);
     
-    if (isAdmin) {
-      router.push('/admin/login');
-    } else {
-      // Redirect to the landing page for regular users
-      router.push('/');
-    }
-    router.refresh(); // Force a refresh to update page content
+    const targetUrl = isAdmin ? '/admin/login' : '/';
+    
+    // Using router.replace to prevent going back to the authenticated page
+    router.replace(targetUrl);
+    
+    // Force a full refresh to ensure all state is cleared and re-evaluated
+    router.refresh();
   };
 
   const renderMenuItems = () => {

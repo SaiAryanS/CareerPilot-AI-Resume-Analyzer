@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -6,21 +7,6 @@ import CareerPilotClient from '@/components/career-pilot/career-pilot-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-
-// In a real app, this would use a proper session management library.
-// We use sessionStorage to persist the login state across reloads for this demo.
-const useMockAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    // Check session storage when the component mounts or path changes
-    const loggedInStatus = sessionStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loggedInStatus);
-  }, [pathname]); // Re-check on path change
-
-  return { isLoggedIn };
-};
 
 function LandingPage() {
   return (
@@ -45,7 +31,16 @@ function LandingPage() {
 }
 
 export default function Home() {
-  const { isLoggedIn } = useMockAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // usePathname is used to trigger re-renders on navigation
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // This check now runs on component mount and whenever the path changes.
+    // The router.refresh() on logout will cause this component to remount.
+    const loggedInStatus = sessionStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedInStatus);
+  }, [pathname]);
 
   if (isLoggedIn) {
     return (
