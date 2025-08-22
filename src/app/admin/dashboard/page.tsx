@@ -6,17 +6,9 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import clientPromise from "@/lib/mongodb";
-import { User } from "lucide-react";
 import ManageJobs from "@/components/admin/manage-jobs";
+import ManageUsers from "@/components/admin/manage-users";
 
 async function getUsers() {
     try {
@@ -72,47 +64,12 @@ export default async function AdminDashboardPage() {
                             Welcome, Admin. Here is a summary of user activity and job descriptions.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <h3 className="text-lg font-semibold mb-4 flex items-center">
-                            <User className="mr-2 h-5 w-5" />
-                            Registered Users ({initialUsers.length})
-                        </h3>
-                        <div className="border rounded-md">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Username</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Phone Number</TableHead>
-                                        <TableHead>Registration Date</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {initialUsers.length > 0 ? (
-                                        initialUsers.map((user) => (
-                                            <TableRow key={user._id}>
-                                                <TableCell className="font-medium">{user.username}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>{user.phoneNumber}</TableCell>
-                                                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground">
-                                                No registered users found.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
+                    {/* User Management Section */}
+                    <ManageUsers initialUsers={initialUsers} />
                 </Card>
 
                 {/* Job Description Management Section */}
                 <ManageJobs initialJobs={initialJobs} />
-
             </div>
         </main>
     );
