@@ -39,6 +39,7 @@ export default function Navbar() {
     // Clear session storage on logout
     sessionStorage.removeItem('isLoggedIn');
     sessionStorage.removeItem('isAdmin');
+    sessionStorage.removeItem('userEmail');
     setAuthState(null);
     
     if (isAdmin) {
@@ -47,6 +48,7 @@ export default function Navbar() {
       // Redirect to the landing page for regular users
       router.push('/');
     }
+    router.refresh(); // Force a refresh to update page content
   };
 
   const renderMenuItems = () => {
