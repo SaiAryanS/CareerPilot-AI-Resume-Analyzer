@@ -48,7 +48,7 @@ Follow these instructions to set up and run the project locally.
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the root of your project and add your Gemini API key and MongoDB connection string.
+    Create a `.env` file in the root of your project and add your Gemini API key, MongoDB connection string, and admin credentials.
 
     ```env
     # Obtain a Gemini API key from Google AI Studio: https://aistudio.google.com/app/apikey
@@ -57,6 +57,10 @@ Follow these instructions to set up and run the project locally.
     # Add your MongoDB connection string below.
     # Choose ONE of the options (Atlas or Local).
     MONGODB_URI=your_mongodb_connection_string_here
+
+    # Add your predefined admin credentials below.
+    ADMIN_EMAIL=admin@example.com
+    ADMIN_PASSWORD=your_secure_admin_password
     ```
     
     #### Option A: MongoDB Atlas (Cloud)

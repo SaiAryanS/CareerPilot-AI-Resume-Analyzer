@@ -22,6 +22,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const adminLoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -30,6 +33,9 @@ const adminLoginSchema = z.object({
 
 export default function AdminLoginPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof adminLoginSchema>>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
@@ -38,13 +44,35 @@ export default function AdminLoginPage() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof adminLoginSchema>) => {
-    console.log(values);
-    // Mock admin login logic
-    toast({
-      title: "Admin Login Attempted",
-      description: "Admin login functionality is not yet implemented.",
-    });
+  const onSubmit = async (values: z.infer<typeof adminLoginSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Admin login failed');
+      }
+
+      toast({
+        title: "Admin Login Successful",
+        description: "Redirecting to the admin dashboard...",
+      });
+      router.push('/admin/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Admin Login Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,7 +116,8 @@ export default function AdminLoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full font-bold">
+              <Button type="submit" className="w-full font-bold" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Login as Admin
               </Button>
             </form>
