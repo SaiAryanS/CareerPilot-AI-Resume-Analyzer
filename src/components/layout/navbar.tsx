@@ -44,11 +44,9 @@ export default function Navbar() {
     
     const targetUrl = isAdmin ? '/admin/login' : '/';
     
-    // Using router.replace to prevent going back to the authenticated page
-    router.replace(targetUrl);
-    
-    // Force a full refresh to ensure all state is cleared and re-evaluated
-    router.refresh();
+    // Force a full page refresh by setting the location href.
+    // This is more robust than router.push + router.refresh for a full state reset.
+    window.location.href = targetUrl;
   };
 
   const renderMenuItems = () => {
