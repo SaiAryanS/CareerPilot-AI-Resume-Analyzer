@@ -5,9 +5,9 @@ import clientPromise from '@/lib/mongodb';
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { resumeFileName, jobDescription, matchScore } = data;
+    const { resumeFileName, jobDescription, matchScore, userEmail } = data;
 
-    if (!resumeFileName || !jobDescription || typeof matchScore === 'undefined') {
+    if (!resumeFileName || !jobDescription || typeof matchScore === 'undefined' || !userEmail) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const analysisCollection = db.collection('analyses');
 
     const result = await analysisCollection.insertOne({
+      userEmail,
       resumeFileName,
       jobDescription,
       matchScore,

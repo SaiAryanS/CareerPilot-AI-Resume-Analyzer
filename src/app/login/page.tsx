@@ -60,8 +60,9 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Simulate session by setting a flag in sessionStorage
+      // Store login state and user's email
       sessionStorage.setItem('isLoggedIn', 'true');
+      sessionStorage.setItem('userEmail', data.user.email);
 
       toast({
         title: "Login Successful",

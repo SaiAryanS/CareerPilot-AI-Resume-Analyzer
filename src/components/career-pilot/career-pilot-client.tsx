@@ -98,6 +98,12 @@ export default function CareerPilotClient() {
         setAnalysisResult(result);
         setStage('result');
         
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) {
+            console.warn("User email not found in session storage. Analysis will not be saved.");
+            return;
+        }
+
         // Securely save the analysis to the database via our API route
         await fetch('/api/save-analysis', {
             method: 'POST',
@@ -105,6 +111,7 @@ export default function CareerPilotClient() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                userEmail: userEmail,
                 resumeFileName: resumeFile.name,
                 jobDescription: selectedJob.title, // Save title for readability
                 matchScore: result.matchScore,
