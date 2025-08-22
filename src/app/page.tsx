@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import CareerPilotClient from '@/components/career-pilot/career-pilot-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -11,12 +11,13 @@ import { ArrowRight } from 'lucide-react';
 // We use sessionStorage to persist the login state across reloads for this demo.
 const useMockAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Check session storage when the component mounts
+    // Check session storage when the component mounts or path changes
     const loggedInStatus = sessionStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedInStatus);
-  }, []);
+  }, [pathname]); // Re-check on path change
 
   return { isLoggedIn };
 };
@@ -44,10 +45,7 @@ function LandingPage() {
 }
 
 export default function Home() {
-  // We will now use a simulated auth state.
-  // In a real app, this would come from a global authentication context.
   const { isLoggedIn } = useMockAuth();
-
 
   if (isLoggedIn) {
     return (
