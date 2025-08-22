@@ -44,7 +44,7 @@ export default function Home() {
   // For the purpose of this task, we will assume the user is logged in to show the analysis tool.
   // To see the landing page, you can change the line below to:
   // const userIsLoggedIn = false;
-  const userIsLoggedIn = true;
+  const userIsLoggedIn = false;
 
 
   if (userIsLoggedIn) {
