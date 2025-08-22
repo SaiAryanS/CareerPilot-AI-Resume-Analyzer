@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "Resume Analysis",
@@ -24,10 +25,13 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased" suppressHydrationWarning>
+      <body className="font-body antialiased flex flex-col min-h-screen" suppressHydrationWarning>
         <Navbar />
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
         <Toaster />
+        <Footer />
       </body>
     </html>
   );
