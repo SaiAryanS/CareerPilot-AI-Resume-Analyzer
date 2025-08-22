@@ -39,12 +39,8 @@ function LandingPage() {
 
 export default function Home() {
   // In a real application, this would come from a global authentication context.
-  const { isLoggedIn } = useMockAuth(); 
-
-  // For the purpose of this task, we will assume the user is logged in to show the analysis tool.
-  // To see the landing page, you can change the line below to:
-  // const userIsLoggedIn = false;
-  const userIsLoggedIn = false;
+  // For now, we will assume the user is logged in to show the analysis tool.
+  const userIsLoggedIn = true;
 
 
   if (userIsLoggedIn) {

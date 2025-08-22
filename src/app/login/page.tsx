@@ -23,6 +23,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, { message: "Email or Phone Number is required" }),
@@ -31,6 +34,9 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -39,13 +45,35 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log(values);
-    // Mock login logic
-    toast({
-      title: "Login Attempted",
-      description: "Login functionality is not yet implemented.",
-    });
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome back! Redirecting...",
+      });
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,7 +117,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full font-bold">
+              <Button type="submit" className="w-full font-bold" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Login
               </Button>
             </form>
