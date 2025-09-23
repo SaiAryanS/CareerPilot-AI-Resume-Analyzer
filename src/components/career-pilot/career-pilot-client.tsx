@@ -170,6 +170,7 @@ export default function CareerPilotClient() {
           result={analysisResult}
           onTryAgain={resetAnalysis}
           jobDescription={selectedJob.description}
+          jobTitle={selectedJob.title}
         />;
       default:
         return null;

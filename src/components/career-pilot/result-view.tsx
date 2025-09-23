@@ -1,24 +1,25 @@
 
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyzeSkillsOutput } from '@/ai/flows/skill-matching';
-import { CheckCircle2, XCircle, AlertTriangle, Info, Download, Briefcase } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Info, Download, Briefcase, Mic } from "lucide-react";
 
 interface ResultViewProps {
   result: AnalyzeSkillsOutput;
   onTryAgain: () => void;
   jobDescription: string;
+  jobTitle: string;
 }
 
-export function ResultView({ result, onTryAgain, jobDescription }: ResultViewProps) {
+export function ResultView({ result, onTryAgain, jobDescription, jobTitle }: ResultViewProps) {
   const resultCardRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  // The AI should return a score between 0 and 100.
-  // If it returns a decimal (e.g., 0.92), multiply by 100 to get the percentage.
   const displayScore = result.matchScore > 1 ? result.matchScore : Math.round(result.matchScore * 100);
 
   const getStatusStyle = () => {
@@ -28,7 +29,6 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
         textColor: 'text-green-400',
         icon: <CheckCircle2 className="h-5 w-5" />,
         statusText: 'Approved',
-        badgeClass: 'text-green-300 border-green-500/30'
       };
     } else if (displayScore >= 50) {
       return {
@@ -36,7 +36,6 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
         textColor: 'text-yellow-400',
         icon: <AlertTriangle className="h-5 w-5" />,
         statusText: 'Needs Improvement',
-        badgeClass: 'text-yellow-300 border-yellow-500/30'
       };
     } else {
       return {
@@ -44,7 +43,6 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
         textColor: 'text-red-400',
         icon: <XCircle className="h-5 w-5" />,
         statusText: 'Not a Match',
-        badgeClass: 'text-red-300 border-red-500/30'
       };
     }
   };
@@ -55,21 +53,19 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
     const cardElement = resultCardRef.current;
     if (!cardElement) return;
   
-    // Temporarily adjust style for capture
     const originalStyle = {
       padding: cardElement.style.padding,
       width: cardElement.style.width,
     };
-    cardElement.style.padding = '24px'; // Match card padding
-    cardElement.style.width = `${cardElement.offsetWidth}px`; // Fix width
+    cardElement.style.padding = '24px';
+    cardElement.style.width = `${cardElement.offsetWidth}px`;
   
     html2canvas(cardElement, {
-      scale: 2, // Increase resolution for better quality
-      backgroundColor: '#0a0a0a', // Dark background for the canvas
+      scale: 2,
+      backgroundColor: '#0a0a0a',
       useCORS: true,
       logging: false,
     }).then((canvas) => {
-      // Restore original style after capture
       cardElement.style.padding = originalStyle.padding;
       cardElement.style.width = originalStyle.width;
   
@@ -103,12 +99,19 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
     });
   };
 
+  const startInterview = () => {
+    // Store data needed for the interview page in sessionStorage
+    sessionStorage.setItem('interviewJobDescription', jobDescription);
+    sessionStorage.setItem('interviewJobTitle', jobTitle);
+    router.push('/interview');
+  };
+
   return (
     <>
       <Card 
         ref={resultCardRef} 
         className="w-full max-w-3xl mx-auto border-primary/20 shadow-primary/5 shadow-lg"
-        style={{ backgroundColor: '#0a0a0a' }} // Force background for html2canvas
+        style={{ backgroundColor: '#0a0a0a' }}
       >
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -176,6 +179,12 @@ export function ResultView({ result, onTryAgain, jobDescription }: ResultViewPro
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
+          {displayScore >= 70 && (
+            <Button onClick={startInterview} className="w-full sm:w-auto font-bold bg-gradient-to-r from-primary to-green-400 hover:from-primary/90 hover:to-green-400/90 text-primary-foreground">
+              <Mic className="mr-2 h-4 w-4" />
+              Start Mock Interview
+            </Button>
+          )}
         </CardFooter>
       </div>
     </>
