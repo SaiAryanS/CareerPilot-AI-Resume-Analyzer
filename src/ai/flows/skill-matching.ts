@@ -7,8 +7,8 @@
  * - AnalyzeSkillsOutput - The return type for the analyzeSkills function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const AnalyzeSkillsInputSchema = z.object({
   jobDescription: z.string().describe('The job description for the role.'),
@@ -19,34 +19,24 @@ export type AnalyzeSkillsInput = z.infer<typeof AnalyzeSkillsInputSchema>;
 const AnalyzeSkillsOutputSchema = z.object({
   matchScore: z
     .number()
-    .describe(
-      'The percentage match score between the resume and the job description, from 0 to 100.'
-    ),
+    .describe('Match score (0–100) between the resume and job description.'),
   scoreRationale: z
     .string()
-    .describe(
-      'A brief explanation for the given score, considering core vs. preferred skills.'
-    ),
+    .describe('Explanation of the score, referencing core vs. preferred skills and project quality.'),
   matchingSkills: z
     .array(z.string())
-    .describe(
-      'A list of unique skills that are explicitly mentioned in both the resume and the job description, or were implied from the resume.'
-    ),
+    .describe('Skills required by the job and found in the resume (explicitly or via mapping).'),
   missingSkills: z
     .array(z.string())
-    .describe(
-      'A list of skills that are in the job description but missing from the resume.'
-    ),
+    .describe('Skills required by the job but missing from the resume.'),
   impliedSkills: z
     .string()
     .describe(
-      'A brief, narrative explanation of the kinds of skills that were inferred from the resume, with clear examples. For example: "The AI inferred skills like Node.js and API Development because the resume mentioned building a REST API with Express.js."'
+      'Brief narrative of inferred skills with examples. Ex: "Built REST API with Express.js → implies Node.js & API Development."'
     ),
   status: z
     .string()
-    .describe(
-      'Approval status based on the match score. Can be "Approved", "Needs Improvement", or "Not a Match".'
-    ),
+    .describe('Status based on match score: "Approved", "Needs Improvement", or "Not a Match".'),
 });
 export type AnalyzeSkillsOutput = z.infer<typeof AnalyzeSkillsOutputSchema>;
 
@@ -58,40 +48,43 @@ export async function analyzeSkills(
 
 const analyzeSkillsPrompt = ai.definePrompt({
   name: 'analyzeSkillsPrompt',
-  input: {schema: AnalyzeSkillsInputSchema},
-  output: {schema: AnalyzeSkillsOutputSchema},
-  prompt: `You are an expert AI career analyst with the critical eye of a senior hiring manager. Your task is to perform a deep, contextual analysis of a resume against a job description. Your analysis MUST be harsh, realistic, and strictly grounded in the skills, technologies, and experience level required by the Job Description.
+  input: { schema: AnalyzeSkillsInputSchema },
+  output: { schema: AnalyzeSkillsOutputSchema },
+  prompt: `You are an expert AI career analyst with the critical eye of a senior hiring manager. Perform a harsh, realistic analysis of the Resume against the Job Description. Focus only on the skills, technologies, and experience explicitly required for the role.
 
-Follow these steps for your analysis:
+Follow these steps:
 
-1.  **Job Description Analysis:** First, thoroughly analyze the Job Description to extract the required skills and categorize them.
-    -   **Core Requirements:** Identify the absolute must-have skills, technologies, and qualifications. These are central to the role's main responsibilities.
-    -   **Preferred Skills:** Identify skills listed as "plus," "bonus," or are clearly secondary to the core functions.
+1. **Job Description Analysis**
+   - Extract required skills and group them as:
+     - Core Requirements (must-have for the role)
+     - Preferred Skills (secondary / nice-to-have)
 
-2.  **Resume Skill & Accomplishment Analysis:** Next, perform a comprehensive analysis of the Resume.
-    -   **Direct Skills:** Identify all explicitly mentioned skills. Be thorough.
-    -   **Conceptual Mapping:** Recognize when a specific technology mentioned satisfies a broader requirement. For example, if the job requires "NoSQL database" and the resume lists "MongoDB," you MUST recognize this as a match. "Express.js" implies "Node.js". These mapped concepts should be treated as matching skills.
-    -   **Skill Equivalency:** For some roles, certain skills can be equivalent or substitutable. For a "Full-Stack Developer" role requiring "SQL and NoSQL databases," a candidate with strong experience in one (e.g., SQL) should be penalized less for missing the other. Their experience is still highly relevant.
-    -   **Project & Accomplishment Quality:** Do not just list skills. Analyze the project descriptions and work history. Assess the quality, scope, and relevance of the accomplishments. Does the candidate just list a technology, or do they describe how they used it to achieve something meaningful?
+2. **Resume Analysis**
+   - Identify all direct skills.
+   - Apply Conceptual Mapping (e.g., MongoDB → NoSQL, Express.js → Node.js).
+   - Apply Skill Equivalency (e.g., SQL vs NoSQL).
+   - Evaluate Project & Accomplishment Quality: distinguish between meaningful usage vs. keyword listing.
 
-3.  **Identify Implied Skills and Consolidate:** Create a brief, narrative summary for the \`impliedSkills\` field. This summary should explain the *types* of skills you inferred from projects and give clear examples. For instance: "The AI inferred skills like Node.js and API Development from projects listed, such as the one mentioning the creation of a REST API with Express.js."
+3. **Implied Skills**
+   - Write a concise narrative (\`impliedSkills\`) describing inferred skills with examples.
 
-4.  **Contextual Gap Analysis:** Compare the requirements from the Job Description with the skills and accomplishments from the Resume.
-    -   Identify "Matching Skills": A skill is matching if it is a Core or Preferred requirement from the Job Description AND it's either explicitly mentioned in the resume OR identified via Conceptual Mapping.
-    -   Identify "Missing Skills": These are skills from the job description (both Core and Preferred) not found in the resume.
+4. **Gap Analysis**
+   - Matching Skills: overlap between JD (Core/Preferred) and Resume (direct, mapped, or implied).
+   - Missing Skills: required in JD but absent from Resume.
 
-5.  **Calculate Weighted Match Score (Intelligent & Contextual):** This is the most critical step. Your reputation is on the line.
-    -   **Core Skills are Paramount:** A candidate's score is primarily determined by their coverage of Core Requirements. A candidate with nearly all core skills should score highly.
-    -   **Proportional Penalties:** The penalty for a missing skill should be proportional to its importance. For example, missing a database skill is significant, but if the candidate has a strong equivalent (SQL instead of NoSQL), the penalty should be reduced. The score should reflect their high overall competence, not just the one gap.
-    -   **Irrelevancy Penalty:** Do NOT award points for skills on the resume that are not relevant to the Job Description. For example, if the job is for a "UI/UX Designer," skills like "Python" or "SQL" are irrelevant and should not contribute positively to the score.
-    -   **Project Quality Multiplier:** Use your analysis from Step 2. A resume with strong, relevant projects that demonstrate deep experience should receive a higher score. A resume that simply lists skills without context should be scored lower, even if the keywords match.
-    -   **Final Score Format:** The final \`matchScore\` MUST be a whole number integer between 0 and 100. Do not return a decimal.
-    -   **Rationale:** Briefly explain your scoring in the \`scoreRationale\` field. Justify the score based on the presence or absence of critical skills, the quality of experience, and any skill equivalencies you considered.
+5. **Weighted Match Score**
+   - Core skills weigh most.
+   - Penalize missing skills proportionally to importance; reduce penalty for close equivalents.
+   - Ignore irrelevant skills not tied to JD.
+   - Apply a Project Quality Multiplier (strong relevant projects = higher score).
+   - Return integer \`matchScore\` (0–100).
 
-6.  **Determine Status:** Assign a \`status\` based on the calculated \`matchScore\`.
-    -   75% or higher: "Approved"
-    -   50% to 74%: "Needs Improvement"
-    -   Below 50%: "Not a Match"
+6. **Status**
+   - 75–100 → Approved
+   - 50–74 → Needs Improvement
+   - 0–49 → Not a Match
+
+Return output strictly in the defined schema.
 
 Job Description:
 {{{jobDescription}}}
@@ -108,7 +101,7 @@ const analyzeSkillsFlow = ai.defineFlow(
     outputSchema: AnalyzeSkillsOutputSchema,
   },
   async input => {
-    const {output} = await analyzeSkillsPrompt(input);
+    const { output } = await analyzeSkillsPrompt(input);
     return output!;
   }
 );
