@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   generateInterviewQuestions,
@@ -13,9 +13,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Mic, StopCircle } from 'lucide-react';
+import { Loader2, Mic, StopCircle, Timer } from 'lucide-react';
 
 type InterviewResult = EvaluateAnswerOutput & { question: string };
+
+const INTERVIEW_TIME_LIMIT = 180; // 3 minutes in seconds
 
 export default function InterviewPage() {
   const router = useRouter();
@@ -28,6 +30,14 @@ export default function InterviewPage() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [timeLeft, setTimeLeft] = useState(INTERVIEW_TIME_LIMIT);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const answerRef = useRef(userAnswer);
+
+  useEffect(() => {
+    answerRef.current = userAnswer;
+  }, [userAnswer]);
 
   const preventPaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -79,7 +89,11 @@ export default function InterviewPage() {
   };
 
   const handleSubmit = useCallback(async () => {
-    if (!userAnswer.trim()) {
+    // Clear the timer when submitting
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    const answerToSubmit = answerRef.current;
+    if (!answerToSubmit.trim()) {
       toast({ variant: 'destructive', title: 'Please provide an answer.' });
       return;
     }
@@ -92,7 +106,7 @@ export default function InterviewPage() {
       const result = await evaluateInterviewAnswer({
         jobDescription,
         question: questions[currentQuestionIndex],
-        userAnswer,
+        userAnswer: answerToSubmit,
       });
 
       const newResults = [...results, { ...result, question: questions[currentQuestionIndex] }];
@@ -101,6 +115,7 @@ export default function InterviewPage() {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setUserAnswer('');
+        setTimeLeft(INTERVIEW_TIME_LIMIT);
       } else {
         sessionStorage.setItem('interviewResults', JSON.stringify(newResults));
         router.push('/interview/results');
@@ -110,7 +125,28 @@ export default function InterviewPage() {
     } finally {
       setIsEvaluating(false);
     }
-  }, [userAnswer, questions, currentQuestionIndex, results, router, toast]);
+  }, [questions, currentQuestionIndex, results, router, toast]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (isLoading || isEvaluating || questions.length === 0) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(timerRef.current!);
+          toast({ title: "Time's Up!", description: "Submitting your answer automatically." });
+          handleSubmit();
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isLoading, isEvaluating, questions, currentQuestionIndex, handleSubmit, toast]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -133,6 +169,12 @@ export default function InterviewPage() {
     fetchQuestions();
   }, [router, toast]);
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   if (isLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center p-4">
@@ -151,7 +193,13 @@ export default function InterviewPage() {
     <main className="min-h-screen flex items-center justify-center p-4 pt-20">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="mb-4" />
+          <div className="flex justify-between items-center mb-4">
+            <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mr-4" />
+            <div className="flex items-center gap-2 text-muted-foreground font-mono text-sm">
+                <Timer className="h-4 w-4" />
+                <span>{formatTime(timeLeft)}</span>
+            </div>
+          </div>
           <CardTitle className="font-headline text-xl">Question {currentQuestionIndex + 1} of {questions.length}</CardTitle>
           <CardDescription className="text-lg pt-2">{questions[currentQuestionIndex]}</CardDescription>
         </CardHeader>

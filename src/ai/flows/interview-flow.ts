@@ -17,8 +17,9 @@ const GenerateQuestionsInputSchema = z.object({
 const GenerateQuestionsOutputSchema = z.object({
   questions: z
     .array(z.string())
+    .length(5)
     .describe(
-      'An array of 5 to 7 interview questions. The questions should increase in difficulty from basic screening to more complex, scenario-based ones.'
+      'An array of exactly 5 interview questions. The questions must progressively increase in difficulty, from basic screening to more complex, scenario-based ones.'
     ),
 });
 export type GenerateQuestionsOutput = z.infer<
@@ -35,7 +36,10 @@ const generateQuestionsPrompt = ai.definePrompt({
   name: 'generateQuestionsPrompt',
   input: { schema: GenerateQuestionsInputSchema },
   output: { schema: GenerateQuestionsOutputSchema },
-  prompt: `You are a senior hiring manager preparing for an interview. Based on the provided Job Description, generate a list of 5 to 7 interview questions. The questions should cover the key skills and responsibilities mentioned. They MUST progressively increase in difficulty, starting with a basic introductory question and moving towards more complex, scenario-based problems.
+  prompt: `You are a senior hiring manager preparing for an interview. Based on the provided Job Description, generate a list of exactly 5 interview questions. The questions should cover the key skills and responsibilities mentioned. They MUST progressively increase in difficulty:
+- Question 1: A basic introductory or screening question.
+- Questions 2-3: Intermediate questions about specific skills or experiences.
+- Questions 4-5: Advanced, scenario-based, or behavioral questions that require deep thought.
 
 Job Description:
 {{{jobDescription}}}
@@ -86,6 +90,8 @@ const evaluateAnswerPrompt = ai.definePrompt({
   input: { schema: EvaluateAnswerInputSchema },
   output: { schema: EvaluateAnswerOutputSchema },
   prompt: `You are an expert interviewer evaluating a candidate's response. Analyze the user's answer in the context of the Job Description and the specific Question asked.
+
+Your evaluation should be fair and constructive. Avoid being overly harsh for minor omissions, but remain realistic about the quality of the answer. A good answer is clear, relevant, and demonstrates the skills required in the job description.
 
 Job Description:
 {{{jobDescription}}}
