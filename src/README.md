@@ -1,22 +1,26 @@
 # CareerPilot AI: Resume Analyzer & Career Tool
 
-CareerPilot AI is an intelligent web application designed to help job seekers analyze their resumes against specific job descriptions. By leveraging generative AI, it provides a detailed analysis that goes beyond simple keyword matching, offering users a match score, a breakdown of matching and missing skills, and an overall status to help them improve their candidacy for a role. The application also includes a full user authentication system and a powerful admin dashboard for managing users and job descriptions.
+CareerPilot AI is an intelligent web application designed to help job seekers analyze their resumes, practice for interviews, and improve their candidacy for a role. By leveraging generative AI, it provides a detailed resume analysis, a realistic mock interview simulation, and a full-featured admin dashboard for managing the platform.
 
 ## Core Features
 
--   **Dynamic Job Description Management**: Admins can add, edit, and delete job descriptions from a dedicated dashboard. These jobs are stored in a MongoDB database and are immediately available to users.
 -   **User Authentication**: A complete registration and login system for users.
 -   **Secure Admin Panel**: A separate, secure login for administrators using credentials stored in environment variables.
--   **Easy Resume Upload**: A simple interface allows users to upload their resumes in PDF format.
--   **Advanced AI Analysis**: Utilizes a sophisticated AI prompt to perform a deep, contextual analysis of the user's resume against the selected job description. The analysis identifies:
-    -   `matchScore`: A percentage score (0-100) based on a weighted system that prioritizes "core" required skills.
-    -   `matchingSkills`: A list of skills present in both the resume and job description.
-    -   `missingSkills`: A list of skills required by the job but absent from the resume.
-    -   `impliedSkills`: A narrative explanation of skills the AI inferred from the resume's context.
-    -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match").
--   **Visual Results Display**: The analysis results are presented in a clear, easy-to-understand format with the analyzed job description for context.
--   **Downloadable Reports**: Users can download a PDF of their analysis results.
--   **Analysis History**: Securely saves a summary of each analysis to a MongoDB database for future reference.
+-   **Advanced AI Resume Analysis**:
+    -   **Dynamic Job Management**: Admins can add, edit, and delete job descriptions from a dedicated dashboard. These jobs are stored in a MongoDB database and are immediately available to users.
+    -   **Deep Analysis**: The AI performs a contextual analysis of a user's resume against a job description, identifying:
+        -   `matchScore`: A percentage score prioritizing core skills.
+        -   `matchingSkills`, `missingSkills`, and `impliedSkills`: A detailed breakdown of skill alignment.
+        -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match").
+-   **AI-Powered Mock Interview Simulation**:
+    -   **Eligibility-Based**: Unlocked for users who achieve a resume match score of 70% or higher.
+    -   **Dynamic Question Generation**: The AI generates 5 interview questions that progressively increase in difficulty based on the specific job description.
+    -   **Flexible Input**: Users can answer by either typing their response (with pasting disabled to prevent cheating) or using their voice with built-in speech-to-text.
+    -   **In-Depth Performance Evaluation**: Each answer is scored on a scale of 1-10 and receives constructive, actionable AI feedback. An overall interview score is provided at the end.
+-   **Visual Results & Reports**:
+    -   Both resume analysis and interview results are displayed in a clear, easy-to-understand format.
+    -   Users can download a PDF report of their results for offline review.
+-   **Personalized Analysis History**: Securely saves a summary of each resume analysis to the database, which is private and accessible only to the logged-in user.
 
 ## Admin Dashboard Features
 - **User Management**: View a complete list of all registered users in the system.
@@ -26,7 +30,7 @@ CareerPilot AI is an intelligent web application designed to help job seekers an
 
 -   **Frontend**: [Next.js](https://nextjs.org/) with React & TypeScript
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [ShadCN UI](https://ui.shadcn.com/) components
--   **AI & Backend**: [Genkit](https://firebase.google.com/docs/genkit) (with Google's Gemini models) for AI-powered analysis
+-   **AI & Backend**: [Genkit](https://firebase.google.com/docs/genkit) (with Google's Gemini models) for AI-powered analysis and interview simulation
 -   **PDF Parsing**: [pdfjs-dist](https://mozilla.github.io/pdf.js/) for client-side text extraction from resumes
 -   **Database**: [MongoDB](https://www.mongodb.com/) for storing users, job descriptions, and analysis results
 -   **Authentication**: Custom implementation using `bcryptjs` for password hashing.
