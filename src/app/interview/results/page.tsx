@@ -12,6 +12,7 @@ import { CheckCircle2, AlertTriangle, XCircle, Download } from "lucide-react";
 
 type InterviewResult = {
   question: string;
+  userAnswer: string;
   score: number;
   feedback: string;
 };
@@ -101,13 +102,19 @@ export default function InterviewResultsPage() {
                 <AccordionItem value={`item-${index}`} key={index}>
                   <AccordionTrigger>
                     <div className="flex justify-between items-center w-full pr-4">
-                      <span>Question {index + 1}</span>
-                      <span className={`font-bold ${getScoreColor(result.score)}`}>{result.score}/10</span>
+                      <span className="text-left">Question {index + 1}: {result.question}</span>
+                      <span className={`font-bold pl-4 ${getScoreColor(result.score)}`}>{result.score}/10</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="space-y-2">
-                    <p className="font-semibold text-muted-foreground">{result.question}</p>
-                    <p className="text-sm">{result.feedback}</p>
+                  <AccordionContent className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground mb-2">Your Answer:</h4>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">{result.userAnswer}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground mb-2">AI Feedback:</h4>
+                      <p className="text-sm">{result.feedback}</p>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}

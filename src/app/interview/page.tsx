@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, Mic, StopCircle, Timer } from 'lucide-react';
 
-type InterviewResult = EvaluateAnswerOutput & { question: string };
+type InterviewResult = EvaluateAnswerOutput & { question: string; userAnswer: string; };
 
 const INTERVIEW_TIME_LIMIT = 180; // 3 minutes in seconds
 
@@ -109,7 +109,7 @@ export default function InterviewPage() {
         userAnswer: answerToSubmit,
       });
 
-      const newResults = [...results, { ...result, question: questions[currentQuestionIndex] }];
+      const newResults = [...results, { ...result, question: questions[currentQuestionIndex], userAnswer: answerToSubmit }];
       setResults(newResults);
 
       if (currentQuestionIndex < questions.length - 1) {
