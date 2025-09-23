@@ -60,22 +60,25 @@ Follow these steps:
      - Preferred Skills (secondary / nice-to-have)
 
 2. **Resume Analysis**
-   - Identify all direct skills.
-   - Apply Conceptual Mapping (e.g., MongoDB → NoSQL, Express.js → Node.js).
-   - Apply Skill Equivalency (e.g., SQL vs NoSQL).
+   - Identify all direct skills from the resume.
+   - **Apply Conceptual Mapping & Skill Equivalency:** This is critical. Map related technologies to the required skills.
+     - (e.g., MongoDB in resume -> maps to NoSQL requirement).
+     - (e.g., Express.js in resume -> maps to Node.js requirement).
+     - **(e.g., Jenkins + Docker + AWS/Azure in resume -> strongly implies CI/CD Pipeline experience).**
+     - **(e.g., Experience with Django in resume -> should be considered equivalent or very similar to FastAPI if the project context is building APIs).**
    - Evaluate Project & Accomplishment Quality: distinguish between meaningful usage vs. keyword listing.
 
 3. **Implied Skills**
-   - Write a concise narrative (\`impliedSkills\`) describing inferred skills with examples.
+   - Write a concise narrative (\`impliedSkills\`) describing inferred skills with concrete examples from the resume.
 
 4. **Gap Analysis**
-   - Matching Skills: overlap between JD (Core/Preferred) and Resume (direct, mapped, or implied).
-   - Missing Skills: required in JD but absent from Resume.
+   - Matching Skills: list skills that overlap between the JD (Core/Preferred) and the Resume (direct, mapped, or implied).
+   - Missing Skills: list skills required in the JD but are genuinely absent from the Resume, even after conceptual mapping.
 
 5. **Weighted Match Score**
    - Core skills weigh most.
-   - Penalize missing skills proportionally to importance; reduce penalty for close equivalents.
-   - Ignore irrelevant skills not tied to JD.
+   - Penalize missing skills proportionally to importance; reduce penalty for close equivalents (like Django for FastAPI).
+   - Ignore irrelevant skills not tied to the JD.
    - Apply a Project Quality Multiplier (strong relevant projects = higher score).
    - Return integer \`matchScore\` (0–100).
 
