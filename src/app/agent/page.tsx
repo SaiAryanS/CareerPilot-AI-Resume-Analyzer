@@ -11,7 +11,7 @@ import { Loader2, Paperclip, User, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import type { Job } from '@/components/career-pilot/career-pilot-client';
-import { genkit, MessageData } from 'genkit';
+import { MessageData } from 'genkit';
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
@@ -43,7 +43,7 @@ export default function AgentPage() {
             behavior: 'smooth'
         })
     }
-  }, [messages])
+  }, [messages]);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -78,10 +78,10 @@ export default function AgentPage() {
     setIsLoading(true);
 
     const userMessageContent = `${input}${resumeFile ? `\n\n(Attached: ${resumeFile.name})` : ''}`.trim();
-    const newUserMessage: Message = { role: 'user', content: userMessageContent };
     
-    // Add user message to state
-    setMessages(prev => [...prev, newUserMessage]);
+    // Create a new array with the new user message
+    const newMessages: Message[] = [...messages, { role: 'user', content: userMessageContent }];
+    setMessages(newMessages);
     
     let currentInput = input;
     let currentResumeFile = resumeFile;
@@ -103,9 +103,8 @@ export default function AgentPage() {
             }
         }
         
-        // Construct the history from the current state, including the new user message
-        const historyForApi: MessageData[] = [...messages, newUserMessage]
-            .slice(0, -1) // Exclude the last message which is the current prompt
+        const historyForApi: MessageData[] = newMessages
+            .slice(0, -1) // Exclude the current prompt message
             .map(msg => ({
                 role: msg.role,
                 content: [{ text: msg.content }]
@@ -146,8 +145,8 @@ export default function AgentPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-          <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
-            <div className="space-y-6 p-6">
+          <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+            <div className="space-y-6">
               {messages.map((message, index) => (
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
