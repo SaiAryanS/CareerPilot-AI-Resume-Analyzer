@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -10,6 +11,8 @@ import { Loader2, Paperclip, User, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import type { Job } from '@/components/career-pilot/career-pilot-client';
+import { genkit, MessageData } from 'genkit';
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
@@ -27,11 +30,20 @@ export default function AgentPage() {
   ]);
   const [input, setInput] = useState('');
   const [jobList, setJobList] = useState<Job[]>([]);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTo({
+            top: scrollAreaRef.current.scrollHeight,
+            behavior: 'smooth'
+        })
+    }
+  }, [messages])
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -65,43 +77,39 @@ export default function AgentPage() {
 
     setIsLoading(true);
 
-    const userMessageContent = `
-      ${input}
-      ${resumeFile ? `\n\n**Resume File:** ${resumeFile.name}` : ''}
-    `;
-
-    const newUserMessage: Message = { role: 'user', content: userMessageContent.trim() };
-    const newMessages = [...messages, newUserMessage];
-    setMessages(newMessages);
-
-    let prompt = input;
+    const userMessageContent = `${input}${resumeFile ? `\n\n(Attached: ${resumeFile.name})` : ''}`.trim();
+    const newUserMessage: Message = { role: 'user', content: userMessageContent };
+    
+    // Add user message to state
+    setMessages(prev => [...prev, newUserMessage]);
+    
+    let currentInput = input;
+    let currentResumeFile = resumeFile;
+    setInput('');
+    setResumeFile(null);
+    if(fileInputRef.current) fileInputRef.current.value = '';
 
     try {
-        // If a resume is attached, extract its text and find the selected job
-        if (resumeFile) {
-            const resumeText = await extractTextFromPdf(resumeFile);
-            const job = jobList.find(j => input.toLowerCase().includes(j.title.toLowerCase()));
+        let prompt = currentInput;
+
+        if (currentResumeFile) {
+            const resumeText = await extractTextFromPdf(currentResumeFile);
+            const job = jobList.find(j => currentInput.toLowerCase().includes(j.title.toLowerCase()));
 
             if (job) {
-                // Format the prompt for the tool call
-                prompt = `
-                    Here is the job description and my resume. Please analyze it.
-
-                    **Job Description:**
-                    ${job.description}
-
-                    **Resume:**
-                    ${resumeText}
-                `;
+                prompt = `Here is the job description and my resume. Please analyze it.\n\n**Job Description:**\n${job.description}\n\n**Resume:**\n${resumeText}`;
             } else {
-                throw new Error("Could not identify the selected job from your message. Please mention the job title clearly.");
+                throw new Error("Could not identify the selected job from your message. Please mention one of the available job titles clearly.");
             }
         }
         
-        const historyForApi = newMessages.slice(0, -1).map(msg => ({
-            role: msg.role,
-            content: [{text: msg.content}]
-        }))
+        // Construct the history from the current state, including the new user message
+        const historyForApi: MessageData[] = [...messages, newUserMessage]
+            .slice(0, -1) // Exclude the last message which is the current prompt
+            .map(msg => ({
+                role: msg.role,
+                content: [{ text: msg.content }]
+            }));
 
         const response = await fetch('/api/agent', {
             method: 'POST',
@@ -120,17 +128,15 @@ export default function AgentPage() {
         const data = await response.json();
         setMessages(prev => [...prev, { role: 'model', content: data.response }]);
     } catch (error: any) {
-        setMessages(prev => [...prev, { role: 'model', content: `Error: ${error.message}` }]);
+        setMessages(prev => [...prev, { role: 'model', content: `Sorry, an error occurred: ${error.message}` }]);
     } finally {
         setIsLoading(false);
-        setInput('');
-        setResumeFile(null);
     }
   };
 
   return (
     <main className="min-h-screen container mx-auto p-4 pt-24 sm:pt-28 md:pt-32 flex justify-center">
-      <Card className="w-full max-w-3xl h-[80vh] flex flex-col">
+      <Card className="w-full max-w-3xl flex flex-col" style={{height: 'calc(100vh - 12rem)'}}>
         <CardHeader>
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Bot /> AI Career Agent
@@ -139,9 +145,9 @@ export default function AgentPage() {
             Chat with our AI agent to analyze your resume against a job description.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-6">
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+          <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
+            <div className="space-y-6 p-6">
               {messages.map((message, index) => (
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
@@ -153,9 +159,17 @@ export default function AgentPage() {
                     {message.role === 'user' && <User className="w-6 h-6 text-muted-foreground flex-shrink-0" />}
                 </div>
               ))}
+              {isLoading && (
+                  <div className="flex items-start gap-4">
+                      <Bot className="w-6 h-6 text-primary flex-shrink-0" />
+                      <div className="rounded-lg px-4 py-3 max-w-lg bg-muted flex items-center">
+                          <Loader2 className="w-5 h-5 animate-spin"/>
+                      </div>
+                  </div>
+              )}
             </div>
           </ScrollArea>
-          <div className="p-4 border-t">
+          <div className="p-4 border-t bg-background">
             <form onSubmit={handleSubmit} className="flex items-center gap-4">
               <Input
                 type="text"
@@ -175,8 +189,8 @@ export default function AgentPage() {
                     onChange={e => setResumeFile(e.target.files?.[0] || null)}
                     accept=".pdf"
                 />
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : 'Send'}
+              <Button type="submit" disabled={isLoading || (!input.trim() && !resumeFile)}>
+                Send
               </Button>
             </form>
             {resumeFile && <p className="text-xs text-muted-foreground mt-2">Attached: {resumeFile.name}</p>}

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Implements an AI agent that can analyze resumes conversationally.
@@ -45,6 +46,7 @@ export const careerAgentFlow = ai.defineFlow(
       system: `You are a friendly and helpful AI Career Agent. Your goal is to assist the user in analyzing their resume against a job description.
 
       - When the user provides a job description and a resume, you MUST use the \`analyzeResume\` tool to perform the analysis.
+      - If the user asks for analysis but has not provided the information, ask for it.
       - Do not make up analysis results. Only provide results that come from the tool.
       - Be conversational and guide the user through the process.
       - When presenting the results from the tool, format them in a clear, readable markdown format.
@@ -52,19 +54,17 @@ export const careerAgentFlow = ai.defineFlow(
       `,
     });
 
-    // Check if the model decided to use a tool
-    if (llmResponse.toolRequest) {
-      const toolResponse = await llmResponse.toolRequest.next();
+    const toolRequest = llmResponse.toolRequest();
+    if (toolRequest) {
+      const toolResponse = await toolRequest.next();
 
-      // If the tool was the resume analyzer, format the output nicely
       if (toolResponse.tool.name === 'analyzeResume') {
         const analysisOutput = toolResponse.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
         
-        // Format the structured data into a user-friendly string
         return `
 ### Analysis Complete!
 
-Here's how your resume stacks up:
+Here's how your resume stacks up against the job description:
 
 **Match Score:** **${analysisOutput.matchScore}%**
 *${analysisOutput.scoreRationale}*
@@ -83,12 +83,13 @@ ${analysisOutput.missingSkills.length > 0 ? analysisOutput.missingSkills.map(s =
 
 #### ✨ Implied Skills
 *${analysisOutput.impliedSkills}*
+
+I am ready for your next request. You can ask me to analyze another resume.
         `;
       }
     }
-
-    // If no tool was used, or for any other tool, return the text response
-    return llmResponse.text;
+    
+    return llmResponse.text();
   }
 );
 
