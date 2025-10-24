@@ -70,6 +70,9 @@ export default function Navbar() {
             <Link href="/">Analyze Resume</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
+            <Link href="/agent">AI Agent</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <Link href="/history">Analysis History</Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
