@@ -79,7 +79,6 @@ export default function AgentPage() {
 
     const userMessageContent = `${input}${resumeFile ? `\n\n(Attached: ${resumeFile.name})` : ''}`.trim();
     
-    // Create a new array with the new user message
     const newMessages: Message[] = [...messages, { role: 'user', content: userMessageContent }];
     setMessages(newMessages);
     
@@ -99,12 +98,12 @@ export default function AgentPage() {
             if (job) {
                 prompt = `Here is the job description and my resume. Please analyze it.\n\n**Job Description:**\n${job.description}\n\n**Resume:**\n${resumeText}`;
             } else {
-                throw new Error("Could not identify the selected job from your message. Please mention one of the available job titles clearly.");
+                 prompt = `I could not find a matching job in the database. Here is my resume, please ask me for a job description.\n\n**Resume:**\n${resumeText}`;
             }
         }
         
         const historyForApi: MessageData[] = newMessages
-            .slice(0, -1) // Exclude the current prompt message
+            .slice(0, -1) 
             .map(msg => ({
                 role: msg.role,
                 content: [{ text: msg.content }]
