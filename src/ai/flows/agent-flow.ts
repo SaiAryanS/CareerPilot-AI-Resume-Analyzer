@@ -9,10 +9,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import {
-  analyzeSkills,
   AnalyzeSkillsInputSchema,
   AnalyzeSkillsOutputSchema,
-} from './skill-matching';
+  CareerAgentInputSchema,
+  type CareerAgentInput
+} from '@/ai/schemas';
+import { analyzeSkills } from './skill-matching';
+
 
 // Define the tool for the agent to use
 export const analyzeResumeTool = ai.defineTool(
@@ -25,13 +28,6 @@ export const analyzeResumeTool = ai.defineTool(
   },
   async (input) => analyzeSkills(input)
 );
-
-// Define the schema for the agent's conversational input
-export const CareerAgentInputSchema = z.object({
-  history: z.array(z.any()),
-  prompt: z.string(),
-});
-export type CareerAgentInput = z.infer<typeof CareerAgentInputSchema>;
 
 // This is the main agent flow
 export const careerAgentFlow = ai.defineFlow(

@@ -7,24 +7,16 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import {
+  GenerateQuestionsInputSchema,
+  GenerateQuestionsOutputSchema,
+  EvaluateAnswerInputSchema,
+  EvaluateAnswerOutputSchema,
+  type GenerateQuestionsOutput,
+  type EvaluateAnswerOutput,
+} from '@/ai/schemas';
+import { z } from 'zod';
 
-// Schema for generating interview questions
-const GenerateQuestionsInputSchema = z.object({
-  jobDescription: z.string().describe('The full job description text.'),
-});
-
-const GenerateQuestionsOutputSchema = z.object({
-  questions: z
-    .array(z.string())
-    .length(5)
-    .describe(
-      'An array of exactly 5 interview questions. The questions must progressively increase in difficulty, from basic screening to more complex, scenario-based ones.'
-    ),
-});
-export type GenerateQuestionsOutput = z.infer<
-  typeof GenerateQuestionsOutputSchema
->;
 
 export async function generateInterviewQuestions(
   jobDescription: string
@@ -58,26 +50,6 @@ const generateInterviewQuestionsFlow = ai.defineFlow(
   }
 );
 
-// Schema for evaluating a single interview answer
-const EvaluateAnswerInputSchema = z.object({
-  jobDescription: z.string().describe('The full job description text.'),
-  question: z.string().describe('The interview question that was asked.'),
-  userAnswer: z.string().describe("The user's answer to the question."),
-});
-
-const EvaluateAnswerOutputSchema = z.object({
-  score: z
-    .number()
-    .describe(
-      'A score from 1 to 10 for the answer, based on relevance, clarity, and technical accuracy.'
-    ),
-  feedback: z
-    .string()
-    .describe(
-      'Constructive feedback on the answer, highlighting strengths and areas for improvement.'
-    ),
-});
-export type EvaluateAnswerOutput = z.infer<typeof EvaluateAnswerOutputSchema>;
 
 export async function evaluateInterviewAnswer(
   input: z.infer<typeof EvaluateAnswerInputSchema>

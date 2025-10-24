@@ -3,42 +3,15 @@
  * @fileOverview Implements AI skill matching between a resume and a job description.
  *
  * - analyzeSkills - A function that analyzes skills in a resume against a job description.
- * - AnalyzeSkillsInput - The input type for the analyzeSkills function.
- * - AnalyzeSkillsOutput - The return type for the analyzeSkills function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const AnalyzeSkillsInputSchema = z.object({
-  jobDescription: z.string().describe('The job description for the role.'),
-  resume: z.string().describe('The text content of the resume.'),
-});
-export type AnalyzeSkillsInput = z.infer<typeof AnalyzeSkillsInputSchema>;
-
-const AnalyzeSkillsOutputSchema = z.object({
-  matchScore: z
-    .number()
-    .describe('Match score (0–100) between the resume and job description.'),
-  scoreRationale: z
-    .string()
-    .describe('Explanation of the score, referencing core vs. preferred skills and project quality.'),
-  matchingSkills: z
-    .array(z.string())
-    .describe('Skills required by the job and found in the resume (explicitly or via mapping).'),
-  missingSkills: z
-    .array(z.string())
-    .describe('Skills required by the job but missing from the resume.'),
-  impliedSkills: z
-    .string()
-    .describe(
-      'Brief narrative of inferred skills with examples. Ex: "Built REST API with Express.js → implies Node.js & API Development."'
-    ),
-  status: z
-    .string()
-    .describe('Status based on match score: "Approved", "Needs Improvement", or "Not a Match".'),
-});
-export type AnalyzeSkillsOutput = z.infer<typeof AnalyzeSkillsOutputSchema>;
+import {
+  AnalyzeSkillsInputSchema,
+  AnalyzeSkillsOutputSchema,
+  type AnalyzeSkillsInput,
+  type AnalyzeSkillsOutput,
+} from '@/ai/schemas';
 
 export async function analyzeSkills(
   input: AnalyzeSkillsInput
