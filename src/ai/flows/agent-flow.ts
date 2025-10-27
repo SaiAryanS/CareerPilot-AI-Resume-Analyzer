@@ -13,10 +13,9 @@ import {
   AnalyzeSkillsInputSchema,
   AnalyzeSkillsOutputSchema,
   CareerAgentInputSchema,
-  type CareerAgentInput
+  type CareerAgentInput,
 } from '@/ai/schemas';
 import { analyzeSkills } from './skill-matching';
-
 
 // Define the tool for the agent to use
 export const analyzeResumeTool = ai.defineTool(
@@ -55,10 +54,9 @@ export const careerAgentFlow = ai.defineFlow(
     });
 
     // Check if the model wants to call a tool
-    const toolRequest = llmResponse.toolRequest();
-    if (toolRequest) {
+    if (llmResponse.toolRequest) {
       // For this agent, we assume it's always the analyzeResumeTool
-      const toolResponse = await toolRequest.next();
+      const toolResponse = await llmResponse.toolRequest.next();
 
       if (toolResponse.tool.name === 'analyzeResume') {
         const analysisOutput = toolResponse.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
@@ -92,7 +90,7 @@ I am ready for your next request. You can ask me to analyze another resume.
     }
     
     // If no tool is called, return the model's text response.
-    return llmResponse.text();
+    return llmResponse.text;
   }
 );
 

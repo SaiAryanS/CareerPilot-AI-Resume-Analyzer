@@ -11,7 +11,7 @@ import { Loader2, Paperclip, User, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import type { Job } from '@/components/career-pilot/career-pilot-client';
-import { MessageData } from 'genkit';
+import { Message } from 'genkit';
 import {
   Select,
   SelectContent,
@@ -23,13 +23,13 @@ import {
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
-type Message = {
+type ChatMessage = {
   role: 'user' | 'model';
   content: string;
 };
 
 export default function AgentPage() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
         role: 'model',
         content: "Hello! I'm your AI Career Agent. To get started, please select a job and upload your resume. I'll analyze it for you."
@@ -91,20 +91,13 @@ export default function AgentPage() {
     const selectedJob = jobList.find(j => j._id === jobId);
     const userMessageContent = `Analyzing resume "${resumeFile.name}" for the role: ${selectedJob?.title}.`;
     
-    const newMessages: Message[] = [...messages, { role: 'user', content: userMessageContent }];
+    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: userMessageContent }];
     setMessages(newMessages);
     
-    // Clear inputs for next analysis
-    setResumeFile(null);
-    if(fileInputRef.current) fileInputRef.current.value = '';
-
     try {
         const resumeText = await extractTextFromPdf(resumeFile);
-        const jobDescription = selectedJob!.description;
-
-        const prompt = `Please analyze my resume against the following job description.\n\n**Job Description:**\n${jobDescription}\n\n**Resume:**\n${resumeText}`;
         
-        const historyForApi: MessageData[] = newMessages
+        const historyForApi: Message[] = newMessages
             .slice(0, -1) // Exclude the user's message we just added
             .map(msg => ({
                 role: msg.role,
@@ -116,7 +109,8 @@ export default function AgentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 history: historyForApi,
-                prompt: prompt,
+                jobId: jobId,
+                resumeText: resumeText,
             }),
         });
 
@@ -131,6 +125,9 @@ export default function AgentPage() {
         setMessages(prev => [...prev, { role: 'model', content: `Sorry, an error occurred: ${error.message}` }]);
     } finally {
         setIsLoading(false);
+        // Clear inputs for next analysis
+        setResumeFile(null);
+        if(fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
