@@ -24,8 +24,8 @@ export const analyzeResumeTool = ai.defineTool(
     name: 'analyzeResume',
     description:
       'Analyzes a resume against a job description to provide a match score and skill gap analysis. This should be the primary tool used when a user wants to evaluate their resume for a job.',
-    input: { schema: AnalyzeSkillsInputSchema },
-    output: { schema: AnalyzeSkillsOutputSchema },
+    inputSchema: AnalyzeSkillsInputSchema,
+    outputSchema: AnalyzeSkillsOutputSchema,
   },
   async (input) => analyzeSkills(input)
 );
@@ -54,8 +54,10 @@ export const careerAgentFlow = ai.defineFlow(
       `,
     });
 
+    // Check if the model wants to call a tool
     const toolRequest = llmResponse.toolRequest();
     if (toolRequest) {
+      // For this agent, we assume it's always the analyzeResumeTool
       const toolResponse = await toolRequest.next();
 
       if (toolResponse.tool.name === 'analyzeResume') {
@@ -89,6 +91,7 @@ I am ready for your next request. You can ask me to analyze another resume.
       }
     }
     
+    // If no tool is called, return the model's text response.
     return llmResponse.text();
   }
 );
