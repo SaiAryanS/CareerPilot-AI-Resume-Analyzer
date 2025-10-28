@@ -24,7 +24,7 @@ export default function AgentPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
         role: 'model',
-        content: "Hello! I'm your AI Career Agent. How can I help you today? You can ask me to analyze a resume against a job description."
+        content: "Hello! I'm your AI Career Agent. How can I help you today? You can provide a job description and then upload a resume for analysis."
     }
   ]);
   const [input, setInput] = useState('');
@@ -64,10 +64,20 @@ export default function AgentPage() {
     let userMessageContent = input;
     let combinedPrompt = input;
 
+    // Add user's text message to chat
+    const newMessages: ChatMessage[] = [...messages];
+    if (input.trim()) {
+        newMessages.push({ role: 'user', content: userMessageContent });
+    }
+
     if (resumeFile) {
-        userMessageContent += `\n\n[Attached Resume: ${resumeFile.name}]`;
+        // If there's a file, show it as an attachment in the user's message
+        const fileMessageContent = input.trim() ? `\n\n[Attached Resume: ${resumeFile.name}]` : `[Attached Resume: ${resumeFile.name}]`;
+        newMessages[newMessages.length - 1].content += fileMessageContent;
+
         try {
             const resumeText = await extractTextFromPdf(resumeFile);
+            // This is the critical part: explicitly tell the agent about the resume text.
             combinedPrompt += `\n\nHere is the resume text:\n${resumeText}`;
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not read the resume PDF file.' });
@@ -76,7 +86,6 @@ export default function AgentPage() {
         }
     }
 
-    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: userMessageContent }];
     setMessages(newMessages);
     setInput('');
     setResumeFile(null);
@@ -96,7 +105,7 @@ export default function AgentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 history: historyForApi,
-                prompt: combinedPrompt, // Send the full combined prompt
+                prompt: combinedPrompt, // Send the full combined prompt with extracted text
             }),
         });
 
@@ -132,7 +141,7 @@ export default function AgentPage() {
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
                     <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-green-950' : 'bg-muted'}`}>
-                         <div className="prose prose-sm dark:prose-invert max-w-none" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                         <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-primary-foreground" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
                     </div>
