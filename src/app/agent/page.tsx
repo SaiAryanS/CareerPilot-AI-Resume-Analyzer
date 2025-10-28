@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -130,7 +131,7 @@ export default function AgentPage() {
               {messages.map((message, index) => (
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
-                    <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-green-950' : 'bg-muted'}`}>
                          <div className="prose prose-sm dark:prose-invert max-w-none" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
