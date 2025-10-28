@@ -61,12 +61,13 @@ export default function AgentPage() {
     setIsLoading(true);
     
     let userMessageContent = input;
-    let resumeText: string | undefined = undefined;
+    let combinedPrompt = input;
 
     if (resumeFile) {
         userMessageContent += `\n\n[Attached Resume: ${resumeFile.name}]`;
         try {
-            resumeText = await extractTextFromPdf(resumeFile);
+            const resumeText = await extractTextFromPdf(resumeFile);
+            combinedPrompt += `\n\nHere is the resume text:\n${resumeText}`;
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not read the resume PDF file.' });
             setIsLoading(false);
@@ -83,6 +84,7 @@ export default function AgentPage() {
     
     try {
         const historyForApi: Message[] = newMessages
+            .slice(0, -1) // Exclude the latest user message from history
             .map(msg => ({
                 role: msg.role,
                 content: [{ text: msg.content }]
@@ -93,8 +95,7 @@ export default function AgentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 history: historyForApi,
-                // Add resumeText to the prompt if it exists.
-                prompt: resumeText ? `${userMessageContent}\n\nResume Text:\n${resumeText}` : userMessageContent,
+                prompt: combinedPrompt, // Send the full combined prompt
             }),
         });
 
@@ -130,7 +131,7 @@ export default function AgentPage() {
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
                     <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                         <div className="prose prose-sm dark:prose-invert max-w-none" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
                     </div>
