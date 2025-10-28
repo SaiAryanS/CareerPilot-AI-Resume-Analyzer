@@ -5,22 +5,26 @@ CareerPilot AI is an intelligent web application designed to help job seekers an
 ## Core Features
 
 -   **User Authentication**: A complete registration and login system for users.
--   **Secure Admin Panel**: A separate, secure login for administrators using credentials stored in environment variables.
+-   **Secure Admin Panel**: A separate, secure login for administrators to manage the platform.
+-   **Conversational AI Career Agent**:
+    -   Engage in a natural, back-and-forth conversation to guide you through resume analysis and interview preparation.
+    -   The agent intelligently asks for the job description and your resume when needed.
+    -   Autonomously decides which tool to use, whether it's analyzing a resume or generating interview questions.
 -   **Advanced AI Resume Analysis**:
-    -   **Dynamic Job Management**: Admins can add, edit, and delete job descriptions from a dedicated dashboard. These jobs are stored in a MongoDB database and are immediately available to users.
+    -   **Dynamic Job Selection**: Users can choose from a list of job descriptions managed by an admin.
     -   **Deep Analysis**: The AI performs a contextual analysis of a user's resume against a job description, identifying:
         -   `matchScore`: A percentage score prioritizing core skills.
         -   `matchingSkills`, `missingSkills`, and `impliedSkills`: A detailed breakdown of skill alignment.
         -   `status`: A qualitative assessment ("Approved", "Needs Improvement", "Not a Match").
 -   **AI-Powered Mock Interview Simulation**:
-    -   **Eligibility-Based**: Unlocked for users who achieve a resume match score of 70% or higher.
-    -   **Dynamic Question Generation**: The AI generates 5 interview questions that progressively increase in difficulty based on the specific job description.
-    -   **Flexible Input**: Users can answer by either typing their response (with pasting disabled to prevent cheating) or using their voice with built-in speech-to-text.
-    -   **In-Depth Performance Evaluation**: Each answer is scored on a scale of 1-10 and receives constructive, actionable AI feedback. An overall interview score is provided at the end.
+    -   **Eligibility-Based**: Unlocked for users who achieve a match score of 70% or higher.
+    -   **Dynamic Questions**: The AI generates 5 interview questions of increasing difficulty based on the job description.
+    -   **Speech-to-Text & Typing Input**: Users can answer by speaking or typing (with anti-cheating measures).
+    -   **Performance Evaluation**: Each answer is scored (1-10) and receives constructive AI feedback.
 -   **Visual Results & Reports**:
-    -   Both resume analysis and interview results are displayed in a clear, easy-to-understand format.
-    -   Users can download a PDF report of their results for offline review.
--   **Personalized Analysis History**: Securely saves a summary of each resume analysis to the database, which is private and accessible only to the logged-in user.
+    -   Both resume analysis and interview results are displayed in a clear, visual format.
+    -   Users can download a PDF report of their results.
+-   **Personalized Analysis History**: Users can view a history of their past resume analyses, securely stored and private to their account.
 
 ## Admin Dashboard Features
 - **User Management**: View a complete list of all registered users in the system.

@@ -6,6 +6,10 @@ CareerPilot AI is an intelligent web application designed to help job seekers an
 
 -   **User Authentication**: A complete registration and login system for users.
 -   **Secure Admin Panel**: A separate, secure login for administrators to manage the platform.
+-   **Conversational AI Career Agent**:
+    -   Engage in a natural, back-and-forth conversation to guide you through resume analysis and interview preparation.
+    -   The agent intelligently asks for the job description and your resume when needed.
+    -   Autonomously decides which tool to use, whether it's analyzing a resume or generating interview questions.
 -   **Advanced AI Resume Analysis**:
     -   **Dynamic Job Selection**: Users can choose from a list of job descriptions managed by an admin.
     -   **Deep Analysis**: The AI performs a contextual analysis of a user's resume against a job description, identifying:
