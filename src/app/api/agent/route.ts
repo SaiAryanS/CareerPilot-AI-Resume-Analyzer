@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { careerAgent } from '@/ai/flows/agent-flow';
 import { z } from 'zod';
+import { Message } from 'genkit';
 
 const agentRequestSchema = z.object({
   history: z.array(z.any()),
@@ -17,9 +18,17 @@ export async function POST(request: Request) {
     }
 
     const { history, prompt } = validation.data;
-
-    // The agent will now look up the job description itself if needed.
-    const response = await careerAgent({ history, prompt });
+    
+    // Construct the full history including the current prompt
+    const fullHistory: Message[] = history.map((msg: any) => ({
+      role: msg.role,
+      content: [{ text: msg.content }]
+    }));
+    
+    const response = await careerAgent({ 
+      history: fullHistory, 
+      prompt 
+    });
 
     return NextResponse.json({ response });
   } catch (e: any) {

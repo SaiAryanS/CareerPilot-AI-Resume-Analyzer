@@ -63,15 +63,16 @@ export const careerAgentFlow = ai.defineFlow(
       `,
     });
     
-    let toolResponse = llmResponse;
-    // Handle tool requests in a loop if the model makes multiple tool calls.
-    while (toolResponse.toolRequest) {
-      const toolOutput = await toolResponse.toolRequest.next();
+    // The response can be a tool request or a text response.
+    // If it's a tool request, we execute the tool and return the formatted output.
+    // If it's a text response, we return the text directly.
+    for (const part of llmResponse.parts) {
+      if (part.toolRequest) {
+        const toolOutput = await part.toolRequest.next();
 
-      // If the tool was `analyzeResume`, format the output and add an interview prompt.
-      if (toolOutput.tool.name === 'analyzeResume') {
-        const analysisOutput = toolOutput.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
-        let formattedResponse = `
+        if (toolOutput.tool.name === 'analyzeResume') {
+          const analysisOutput = toolOutput.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
+          let formattedResponse = `
 ### Analysis Complete!
 
 Here's how your resume stacks up against the job description:
@@ -90,7 +91,6 @@ ${analysisOutput.matchingSkills.length > 0 ? analysisOutput.matchingSkills.map(s
 ${analysisOutput.missingSkills.length > 0 ? analysisOutput.missingSkills.map(s => `- ${s}`).join('\n') : "None. Great job!"}
         `;
         
-        // If the score is high enough, ask about a mock interview
         if (analysisOutput.matchScore >= 70) {
             formattedResponse += `\n\nYour resume is a strong match for this role! Would you like to practice with some AI-generated interview questions?`;
         } else {
@@ -99,7 +99,6 @@ ${analysisOutput.missingSkills.length > 0 ? analysisOutput.missingSkills.map(s =
         return formattedResponse;
       }
 
-      // If the tool was `generateInterviewQuestions`, format the output.
       if (toolOutput.tool.name === 'generateInterviewQuestions') {
         const interviewOutput = toolOutput.output as z.infer<typeof GenerateQuestionsOutputSchema>;
         return `
@@ -111,9 +110,10 @@ Good luck with your practice! Let me know if you need anything else.
         `;
       }
     }
+  }
     
     // If no tool is called, return the model's text response.
-    return toolResponse.text;
+    return llmResponse.text;
   }
 );
 
