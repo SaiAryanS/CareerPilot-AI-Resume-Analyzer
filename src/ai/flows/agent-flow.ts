@@ -1,10 +1,6 @@
-
 'use server';
 /**
- * @fileOverview Implements an AI agent that can analyze resumes conversationally.
- *
- * - careerAgent - The main conversational agent flow.
- * - analyzeResumeTool - A tool that wraps the skill-matching flow.
+ * @fileOverview Implements an AI agent that can analyze resumes and generate interview questions conversationally.
  */
 
 import { ai } from '@/ai/genkit';
@@ -13,11 +9,14 @@ import {
   AnalyzeSkillsInputSchema,
   AnalyzeSkillsOutputSchema,
   CareerAgentInputSchema,
+  GenerateQuestionsInputSchema,
+  GenerateQuestionsOutputSchema,
   type CareerAgentInput,
 } from '@/ai/schemas';
 import { analyzeSkills } from './skill-matching';
+import { generateInterviewQuestions } from './interview-flow';
 
-// Define the tool for the agent to use
+// Define the tool for resume analysis
 export const analyzeResumeTool = ai.defineTool(
   {
     name: 'analyzeResume',
@@ -29,7 +28,18 @@ export const analyzeResumeTool = ai.defineTool(
   async (input) => analyzeSkills(input)
 );
 
-// This is the main agent flow
+// Define the tool for generating interview questions
+export const generateInterviewQuestionsTool = ai.defineTool(
+    {
+        name: 'generateInterviewQuestions',
+        description: 'Generates 5 interview questions based on a job description. Use this when the user agrees to practice for an interview.',
+        inputSchema: GenerateQuestionsInputSchema,
+        outputSchema: GenerateQuestionsOutputSchema,
+    },
+    async (input) => generateInterviewQuestions(input.jobDescription)
+);
+
+
 export const careerAgentFlow = ai.defineFlow(
   {
     name: 'careerAgentFlow',
@@ -37,31 +47,31 @@ export const careerAgentFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async ({ history, prompt }) => {
-
     const llmResponse = await ai.generate({
       prompt: prompt,
       history: history,
-      tools: [analyzeResumeTool],
-      system: `You are a friendly and helpful AI Career Agent. Your only goal is to assist the user in analyzing their resume against a job description.
+      tools: [analyzeResumeTool, generateInterviewQuestionsTool],
+      system: `You are a friendly and helpful AI Career Agent. Your goal is to assist the user in analyzing their resume and preparing for interviews.
 
-- **Initial State:** When the conversation starts, or if you are missing information, your job is to ask for it. You need both a job description and a resume before you can act.
-- **Information Extraction:** The user will provide a job description and a resume in their prompt. You must extract the text for both.
-- **Tool Trigger:** You MUST NOT use the 'analyzeResume' tool until you have confirmed that you have extracted both the 'jobDescription' and the 'resume' text from the user's prompt. If either is missing, ask the user for it.
-- **Execution:** Once you have both pieces of information, and only then, you MUST use the 'analyzeResume' tool to perform the analysis by passing the extracted job description and resume as arguments.
-- **Output:** When presenting the results from the tool, format them in a clear, readable markdown format.
-- **Constraints:** Do not make up analysis results. Only provide results that come from the tool. Do not discuss interviews or other topics. Your only capability is resume analysis.
+- **Initial State:** When the conversation starts, or if you are missing information, your job is to ask for it. You need both a job description and a resume before you can use the 'analyzeResume' tool. If a user provides a job title, you must use that to look up the full description.
+- **Information Gathering:** You must gather the 'jobDescription' and the 'resume' text from the user's prompts and conversation history. Do not act until you have both.
+- **Resume Analysis:** Once you have both pieces of information, and only then, you MUST use the 'analyzeResume' tool.
+- **Presenting Analysis:** When you get results from 'analyzeResume', you must format them clearly in markdown.
+- **Interview Offer:** After presenting the resume analysis, IF the 'matchScore' is 70% or higher, you MUST ask the user if they want to practice for an interview for this role.
+- **Generating Questions:** If the user agrees, you MUST then use the 'generateInterviewQuestions' tool, passing the same 'jobDescription' you used for the resume analysis. Present the questions as a numbered list.
+- **Constraints:** Do not make up analysis or interview results. Only provide results that come from the tools.
       `,
     });
+    
+    let toolResponse = llmResponse;
+    // Handle tool requests in a loop if the model makes multiple tool calls.
+    while (toolResponse.toolRequest) {
+      const toolOutput = await toolResponse.toolRequest.next();
 
-    // Check if the model wants to call a tool
-    if (llmResponse.toolRequest) {
-      // For this agent, we assume it's always the analyzeResumeTool
-      const toolResponse = await llmResponse.toolRequest.next();
-
-      if (toolResponse.tool.name === 'analyzeResume') {
-        const analysisOutput = toolResponse.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
-        
-        return `
+      // If the tool was `analyzeResume`, format the output and add an interview prompt.
+      if (toolOutput.tool.name === 'analyzeResume') {
+        const analysisOutput = toolOutput.output as z.infer<typeof AnalyzeSkillsOutputSchema>;
+        let formattedResponse = `
 ### Analysis Complete!
 
 Here's how your resume stacks up against the job description:
@@ -78,19 +88,32 @@ ${analysisOutput.matchingSkills.length > 0 ? analysisOutput.matchingSkills.map(s
 
 #### ❌ Missing Skills
 ${analysisOutput.missingSkills.length > 0 ? analysisOutput.missingSkills.map(s => `- ${s}`).join('\n') : "None. Great job!"}
+        `;
+        
+        // If the score is high enough, ask about a mock interview
+        if (analysisOutput.matchScore >= 70) {
+            formattedResponse += `\n\nYour resume is a strong match for this role! Would you like to practice with some AI-generated interview questions?`;
+        } else {
+            formattedResponse += `\n\nI'm ready for your next request. You can ask me to analyze another resume.`
+        }
+        return formattedResponse;
+      }
 
----
+      // If the tool was `generateInterviewQuestions`, format the output.
+      if (toolOutput.tool.name === 'generateInterviewQuestions') {
+        const interviewOutput = toolOutput.output as z.infer<typeof GenerateQuestionsOutputSchema>;
+        return `
+Excellent! Here are 5 interview questions based on the job description to help you prepare:
 
-#### ✨ Implied Skills
-*${analysisOutput.impliedSkills}*
+${interviewOutput.questions.map((q, i) => `${i + 1}. ${q}`).join('\n\n')}
 
-I am ready for your next request. You can ask me to analyze another resume.
+Good luck with your practice! Let me know if you need anything else.
         `;
       }
     }
     
     // If no tool is called, return the model's text response.
-    return llmResponse.text;
+    return toolResponse.text;
   }
 );
 

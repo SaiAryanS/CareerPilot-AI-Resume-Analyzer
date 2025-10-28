@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -7,18 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Paperclip, User, Bot } from 'lucide-react';
+import { Loader2, Paperclip, User, Bot, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
-import type { Job } from '@/components/career-pilot/career-pilot-client';
 import { Message } from 'genkit';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
@@ -32,14 +23,12 @@ export default function AgentPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
         role: 'model',
-        content: "Hello! I'm your AI Career Agent. To get started, please select a job and upload your resume. I'll analyze it for you."
+        content: "Hello! I'm your AI Career Agent. How can I help you today? You can ask me to analyze a resume against a job description."
     }
   ]);
-  const [jobId, setJobId] = useState('');
-  const [jobList, setJobList] = useState<Job[]>([]);
+  const [input, setInput] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isJobsLoading, setIsJobsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -52,23 +41,6 @@ export default function AgentPage() {
         }
     }
   }, [messages]);
-
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setIsJobsLoading(true);
-        const response = await fetch('/api/jobs');
-        if (!response.ok) throw new Error('Failed to fetch jobs');
-        const data = await response.json();
-        setJobList(data);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not load jobs.' });
-      } finally {
-        setIsJobsLoading(false);
-      }
-    };
-    fetchJobs();
-  }, [toast]);
 
   const extractTextFromPdf = async (file: File) => {
     const arrayBuffer = await file.arrayBuffer();
@@ -84,21 +56,33 @@ export default function AgentPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!jobId || !resumeFile) return;
+    if (!input.trim() && !resumeFile) return;
 
     setIsLoading(true);
     
-    const selectedJob = jobList.find(j => j._id === jobId);
-    const userMessageContent = `Analyzing resume "${resumeFile.name}" for the role: ${selectedJob?.title}.`;
-    
+    let userMessageContent = input;
+    let resumeText: string | undefined = undefined;
+
+    if (resumeFile) {
+        userMessageContent += `\n\n[Attached Resume: ${resumeFile.name}]`;
+        try {
+            resumeText = await extractTextFromPdf(resumeFile);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not read the resume PDF file.' });
+            setIsLoading(false);
+            return;
+        }
+    }
+
     const newMessages: ChatMessage[] = [...messages, { role: 'user', content: userMessageContent }];
     setMessages(newMessages);
+    setInput('');
+    setResumeFile(null);
+    if(fileInputRef.current) fileInputRef.current.value = '';
+
     
     try {
-        const resumeText = await extractTextFromPdf(resumeFile);
-        
         const historyForApi: Message[] = newMessages
-            .slice(0, -1) // Exclude the user's message we just added
             .map(msg => ({
                 role: msg.role,
                 content: [{ text: msg.content }]
@@ -109,8 +93,8 @@ export default function AgentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 history: historyForApi,
-                jobId: jobId,
-                resumeText: resumeText,
+                // Add resumeText to the prompt if it exists.
+                prompt: resumeText ? `${userMessageContent}\n\nResume Text:\n${resumeText}` : userMessageContent,
             }),
         });
 
@@ -125,9 +109,6 @@ export default function AgentPage() {
         setMessages(prev => [...prev, { role: 'model', content: `Sorry, an error occurred: ${error.message}` }]);
     } finally {
         setIsLoading(false);
-        // Clear inputs for next analysis
-        setResumeFile(null);
-        if(fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -167,24 +148,17 @@ export default function AgentPage() {
             </div>
           </ScrollArea>
           <div className="p-4 border-t bg-background">
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="w-full sm:w-1/2 flex items-center gap-2">
-                <Select onValueChange={setJobId} value={jobId} disabled={isLoading}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={isJobsLoading ? "Loading..." : "Select a job"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jobList.map(job => (
-                      <SelectItem key={job._id} value={job._id}>{job.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:w-1/2 flex items-center gap-2">
-                <Button type="button" variant="outline" className="w-full justify-start text-muted-foreground" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
-                    <Paperclip className="mr-2" />
-                    <span className='truncate'>{resumeFile ? resumeFile.name : "Upload Resume"}</span>
+            <form onSubmit={handleSubmit} className="flex items-center gap-4">
+                <Input 
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    placeholder="Ask me to analyze your resume..."
+                    className="flex-1"
+                    disabled={isLoading}
+                />
+                
+                <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isLoading} title="Attach Resume">
+                    <Paperclip className={resumeFile ? 'text-primary' : ''} />
                 </Button>
                 <Input 
                     type="file" 
@@ -193,12 +167,12 @@ export default function AgentPage() {
                     onChange={e => setResumeFile(e.target.files?.[0] || null)}
                     accept=".pdf"
                 />
-              </div>
 
-              <Button type="submit" disabled={isLoading || !jobId || !resumeFile}>
-                Send
+              <Button type="submit" disabled={isLoading || (!input.trim() && !resumeFile)}>
+                <Send/>
               </Button>
             </form>
+            {resumeFile && <p className="text-xs text-muted-foreground mt-2">Attached: {resumeFile.name}</p>}
           </div>
         </CardContent>
       </Card>
