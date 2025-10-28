@@ -71,13 +71,15 @@ export default function AgentPage() {
     }
 
     if (resumeFile) {
-        // If there's a file, show it as an attachment in the user's message
-        const fileMessageContent = input.trim() ? `\n\n[Attached Resume: ${resumeFile.name}]` : `[Attached Resume: ${resumeFile.name}]`;
-        newMessages[newMessages.length - 1].content += fileMessageContent;
+        const fileMessageContent = `[Attached Resume: ${resumeFile.name}]`;
+        if (newMessages[newMessages.length - 1]?.role === 'user') {
+            newMessages[newMessages.length - 1].content += `\n\n${fileMessageContent}`;
+        } else {
+            newMessages.push({ role: 'user', content: fileMessageContent });
+        }
 
         try {
             const resumeText = await extractTextFromPdf(resumeFile);
-            // This is the critical part: explicitly tell the agent about the resume text.
             combinedPrompt += `\n\nHere is the resume text:\n${resumeText}`;
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not read the resume PDF file.' });
@@ -105,7 +107,7 @@ export default function AgentPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 history: historyForApi,
-                prompt: combinedPrompt, // Send the full combined prompt with extracted text
+                prompt: combinedPrompt,
             }),
         });
 
@@ -140,8 +142,8 @@ export default function AgentPage() {
               {messages.map((message, index) => (
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                     {message.role === 'model' && <Bot className="w-6 h-6 text-primary flex-shrink-0" />}
-                    <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-green-950' : 'bg-muted'}`}>
-                         <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-primary-foreground" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                    <div className={`rounded-lg px-4 py-3 max-w-lg ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                         <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-inherit" style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
                     </div>
